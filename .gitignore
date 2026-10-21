@@ -1,0 +1,11 @@
+# Secrets (Unipile API key)
+.env
+.env.*
+
+# Never commit patient data exported from the clinic
+*.xlsx
+*.xls
+*.csv
+
+.DS_Store
+node_modules/
