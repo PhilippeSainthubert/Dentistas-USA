@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -256,7 +256,7 @@ table.plain{width:100%;border-collapse:collapse;font-size:.9rem}
       <span class="plate"><img src="brand/logo.png" width="777" height="149" alt="Southern Delaware Dental Specialists"></span>
       <span data-i18n="appSub"></span>
     </div>
-    <nav class="nav" id="nav" aria-label="Menú"></nav>
+    <nav class="nav" id="nav" aria-label="Menu"></nav>
     <div class="side-foot">
       <span class="proto" data-i18n="proto"></span>
       <span class="note" data-i18n="notice"></span>
@@ -273,7 +273,7 @@ table.plain{width:100%;border-collapse:collapse;font-size:.9rem}
 <script>
 (function(){
 "use strict";
-const LS_KEY='pd-delaware-v5';
+const LS_KEY='pd-delaware-v6';
 const DAYS=['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'];
 const TODAY='2026-10-21';
 const PAGES=['today','patients','payroll','fees'];
@@ -391,11 +391,11 @@ function seed(){
   V(19,'d4','p10','1 ext'),V(19,'d4','p6','19 RCT'),V(20,'d4','p7','Periodic exam, Prophylaxis'),
   V(21,'d4','p11','#3 MOD Resin composite'),V(21,'d4','p15','Oral eval child under 3, Prophylaxis-child'),
  ];
- return {v:5,lang:'es',page:'today',dentist:'all',date:TODAY,view:'all',pview:'all',q:'',dentists,patients,fees:PD.defaultFees(),visits,implantIdx:0,approved:{},open:{},nextVisit:n+1,nextPat:18};
+ return {v:6,lang:'en',page:'today',dentist:'all',date:TODAY,view:'all',pview:'all',q:'',dentists,patients,fees:PD.defaultFees(),visits,implantIdx:0,approved:{},open:{},nextVisit:n+1,nextPat:18};
 }
 
 let S;
-try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===5&&Array.isArray(p.visits))S=p;}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===6&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
 let D=null; // open record panel: {type:'visit',id} | {type:'new',draft} | {type:'patient',id}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
@@ -443,7 +443,7 @@ function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('sh
 
 /* ---------- shell ---------- */
 function renderShell(){
- document.documentElement.lang=S.lang;
+ document.documentElement.lang=S.lang;document.title=S.lang==='es'?'Producción Dental Delaware':'Dental Production Delaware';
  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
  $('#lang-es').setAttribute('aria-pressed',S.lang==='es');
  $('#lang-en').setAttribute('aria-pressed',S.lang==='en');

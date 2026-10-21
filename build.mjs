@@ -16,7 +16,7 @@ if (existsSync(new URL("./brand/logo.png", import.meta.url))) {
 }
 
 const html = `<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
