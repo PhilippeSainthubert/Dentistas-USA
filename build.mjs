@@ -20,6 +20,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d2939'/%3E%3Cpath d='M11.5 7C9 7 7.6 9 7.6 11.4c0 2 .8 3.4 1.4 5.2.6 1.9.8 4.2 1.6 6.4.4 1.1 1.7 1.1 2.1 0 .6-1.7.9-4.4 2.9-4.4s2.3 2.7 2.9 4.4c.4 1.1 1.7 1.1 2.1 0 .8-2.2 1-4.5 1.6-6.4.6-1.8 1.4-3.2 1.4-5.2C24.4 9 23 7 20.5 7c-1.5 0-2.3.7-4 .7S13 7 11.5 7Z' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>

@@ -275,6 +275,7 @@ const DUP_KEYS=new Set(['comp','periodic','pan','fms','btw']);
 const OPTS=[['exam',['comp','periodic','limited','under3','compperio']],['xray',['btw1','btw2','btw3','btw4','pa','pan','fms','cbct']],['ant',['ant1','ant2','ant3','ant4']],['post',['post1','post2','post3','post4']],['crown',['crownprep','core','crowndel','rec','nightguard']],['implant',['implimp','impldel']],['ext',['extsimple','extsurg','extbaby']],['endo',['endoant','endopre','endomolar']],['misc',['sdf','occadj','occguard']],['nopay',['prophy','fluoride','followup']],['notable',['srp']]];
 const TOOTH=new Set(['ant1','ant2','ant3','ant4','post1','post2','post3','post4','crownprep','core','crowndel','implimp','impldel','extsimple','extsurg','extbaby','endoant','endopre','endomolar']);
 const BUNDLE_IDS=new Set(PD.BUNDLES.map(b=>b.id));
+const COMBO_KEYS=new Set(['comp','periodic','limited','pan','btw','pa','fms','rec']);
 const ICON={
  today:'<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
  patients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18.6 14.6c1.6.9 2.6 2.7 2.9 5.4"/>',
@@ -303,7 +304,7 @@ es:{
  d_new:'Nueva visita',d_patient:'Paciente',d_patientPh:'Apellido, Nombre',d_dentist:'Dentista',d_day:'Día',
  d_plan:'Seguro',d_planPending:'Sin asignar (lo pone recepción)',d_tariff:c=>`Se paga con la tarifa «${c}» de vuestra tabla.`,d_planHelp:'Si no lo sabes, déjalo vacío: recepción lo pondrá.',
  d_treat:'Tratamientos',d_add:'+ Añadir tratamiento',d_noTreat:'Elige en el desplegable lo que le hiciste.',d_tooth:'Diente',d_toothPh:'nº',
- d_amount:'Importe para el dentista',d_noAmount:'Falta el seguro para calcularlo.',d_combo:n=>`Combo aplicado: ${n}`,d_alerts:'Avisos',
+ d_amount:'Importe para el dentista',d_inCombo:'en el combo',d_noAmount:'Falta el seguro para calcularlo.',d_combo:n=>`Combo aplicado: ${n}`,d_alerts:'Avisos',
  d_save:'Guardar visita',d_done:'Listo',d_delete:'Quitar visita',d_close:'Cerrar',d_needName:'Escribe el nombre del paciente.',d_needTreat:'Añade al menos un tratamiento.',
  d_visits:'Visitas de la semana',d_noVisits:'Sin visitas esta semana.',d_openVisit:'Abrir',
  saved:'Guardado',created:n=>`Visita de ${n} guardada`,deleted:'Visita quitada',badTooth:'Diente no válido: usa 1-32 o A-T.',less:'Una menos',more:'Una más',remove:'Quitar',
@@ -343,7 +344,7 @@ en:{
  d_new:'New visit',d_patient:'Patient',d_patientPh:'Last, First',d_dentist:'Dentist',d_day:'Day',
  d_plan:'Insurance',d_planPending:'Not set (front desk adds it)',d_tariff:c=>`Paid from the “${c}” column of your fee table.`,d_planHelp:'If you don’t know it, leave it empty: the front desk will add it.',
  d_treat:'Treatments',d_add:'+ Add treatment',d_noTreat:'Pick what you did from the dropdown.',d_tooth:'Tooth',d_toothPh:'#',
- d_amount:'Amount for the dentist',d_noAmount:'Insurance is needed to calculate it.',d_combo:n=>`Combo applied: ${n}`,d_alerts:'Alerts',
+ d_amount:'Amount for the dentist',d_inCombo:'in the combo',d_noAmount:'Insurance is needed to calculate it.',d_combo:n=>`Combo applied: ${n}`,d_alerts:'Alerts',
  d_save:'Save visit',d_done:'Done',d_delete:'Remove visit',d_close:'Close',d_needName:'Enter the patient name.',d_needTreat:'Add at least one treatment.',
  d_visits:'Visits this week',d_noVisits:'No visits this week.',d_openVisit:'Open',
  saved:'Saved',created:n=>`Visit for ${n} saved`,deleted:'Visit removed',badTooth:'Invalid tooth: use 1-32 or A-T.',less:'One less',more:'One more',remove:'Remove',
@@ -574,7 +575,8 @@ function curItems(){if(!D)return null;if(D.type==='new')return D.draft.items;if(
 function addOptions(){return `<option value="">${t('d_add')}</option>${OPTS.map(([g,ids])=>`<optgroup label="${esc(groupLabel(g))}">${ids.map(id=>`<option value="${id}">${esc(optLabel(id))}</option>`).join('')}</optgroup>`).join('')}`;}
 function planOptions(sel){return `<option value="">${t('d_planPending')}</option>${PD.PLAN_ORDER.map(k=>`<option value="${k}" ${sel===k?'selected':''}>${esc(PD.PLANS[k][S.lang])}</option>`).join('')}`;}
 function treatmentsSection(items,e){
- const priceOf=i=>{const it=items[i];if(!e.col)return '';const p=e.parts.find(x=>x.id===it.k&&(x.tooth||'')===(it.tooth||''));return p&&p.amount!=null?money(p.amount):'';};
+ const inCombo=e.parts.some(p=>BUNDLE_IDS.has(p.id));
+ const priceOf=i=>{const it=items[i];if(!e.col)return '';const p=e.parts.find(x=>x.id===it.k&&(x.tooth||'')===(it.tooth||''));if(p&&p.amount!=null)return money(p.amount);return inCombo&&COMBO_KEYS.has(it.k)?t('d_inCombo'):'';};
  return `<div class="sec"><h3>${t('d_treat')}</h3>
   ${items.length?`<ul class="tlist">${items.map((it,i)=>{const np=PD.ITEM[it.k]&&PD.ITEM[it.k].g==='nopay';return `<li class="${np?'np':''}"><span class="nm">${esc(it.k==='btw'?`${it.n} BW`:it.k==='pa'?'PA (periapical)':itemName(it.k))}</span>
    ${TOOTH.has(it.k)?`<input type="text" class="tooth" id="tooth-${i}" data-f="tooth" data-i="${i}" value="${esc(it.tooth||'')}" placeholder="${t('d_toothPh')}" maxlength="3" aria-label="${esc(t('d_tooth'))}">`:''}
