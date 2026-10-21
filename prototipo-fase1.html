@@ -189,7 +189,7 @@ table.plain{width:100%;border-collapse:collapse;font-size:.9rem}
 <script>
 (function(){
 "use strict";
-const LS_KEY='pd-delaware-v3';
+const LS_KEY='pd-delaware-v4';
 const DAYS=['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'];
 const TODAY='2026-10-21';
 const TABS=[['sheet','hoja'],['payroll','liquidacion'],['fees','precios']];
@@ -273,13 +273,13 @@ function toDropdown(x){
 }
 function seed(){
  const dentists=[{id:'d1',name:'Laura Méndez'},{id:'d2',name:'Kevin Park'},{id:'d3',name:'Aisha Rahman'},{id:'d4',name:'Tom Walsh'}];
- const patients=[['p1','Hale, Marcus','delta'],['p2','Ortiz, Lucía','mc_adult'],['p3','Brennan, Claire','delta'],['p4','Nguyen, Daniel','guardian'],['p5','Kowalski, Ann','noins'],['p6','Reyes, Tomás','mc_child'],['p7','Whitfield, Grace','delta'],['p8','Osei, Kwame',null],['p9','Lindqvist, Eva','unum'],['p10','Moreau, Julien','delta'],['p11','Patel, Ravi','va'],['p12','Delgado, Rosa',null],['p13','Fischer, Owen','delta'],['p14','Santos, Bianca','mc_adult'],['p15','Ibarra, Leo','mc_child']].map(([id,name,plan])=>({id,name,plan}));
+ const patients=[['p1','Hale, Marcus','delta'],['p2','Ortiz, Lucía','mc_adult'],['p3','Brennan, Claire','delta'],['p4','Nguyen, Daniel','guardian'],['p5','Kowalski, Ann','noins'],['p6','Reyes, Tomás','mc_child'],['p7','Whitfield, Grace','delta'],['p8','Osei, Kwame',null],['p9','Lindqvist, Eva','unum'],['p10','Moreau, Julien','delta'],['p11','Patel, Ravi','va'],['p12','Delgado, Rosa',null],['p13','Fischer, Owen','delta'],['p14','Santos, Bianca','mc_adult'],['p15','Ibarra, Leo','mc_child'],['p16','Wright, Samuel','mc_adult'],['p17','Chen, Mia','noins']].map(([id,name,plan])=>({id,name,plan}));
  let n=0;
  const V=(day,d,p,text)=>({id:'v'+(++n),date:'2026-10-'+day,dentist:d,patient:p,items:PD.usable(PD.parseText(text)).map(toDropdown)});
  const visits=[
   V(19,'d1','p1','Periodic exam, 4 BW, Prophylaxis'),V(19,'d1','p3','#4 DO #20 DO Resin Composite'),V(19,'d1','p6',"Periodic exam, 4 BW, 3 PA's, Prophylaxis-child"),
   V(20,'d1','p7','15 core bu and crown prep'),V(20,'d1','p10','Comp exam, 4 BW, Pano'),
-  V(21,'d1','p8','Limited exam, PA'),V(21,'d1','p1','Periodic exam, 4 BW'),V(21,'d1','p13','29 deliver crown'),V(21,'d1','p2','Comp exam, 4 BW, Pano, Fluoride'),V(21,'d1','p5','Comp exam, Prophylaxis'),
+  V(21,'d1','p8','Limited exam, PA'),V(21,'d1','p1','Periodic exam, 4 BW'),V(21,'d1','p13','29 deliver crown'),V(21,'d1','p16','Comp exam, 4 BW, Pano, Fluoride'),V(21,'d1','p17','Comp exam, Prophylaxis'),
   V(19,'d2','p2','Comp exam, 4 BW, Pano, Fluoride'),V(19,'d2','p4','#15 O #14 OL Resin Composite'),
   V(20,'d2','p11','Comp exam, FMX'),V(20,'d2','p5','Comp exam, Prophylaxis'),V(21,'d2','p14','Implant crown impression #30'),
   V(19,'d3','p9','#15 MOL Resin composite, Prophylaxis'),V(20,'d3','p12','No core bu, crown preps 11 and 15'),
@@ -287,11 +287,11 @@ function seed(){
   V(19,'d4','p10','1 ext'),V(19,'d4','p6','19 RCT'),V(20,'d4','p7','Periodic exam, Prophylaxis'),
   V(21,'d4','p11','#3 MOD Resin composite'),V(21,'d4','p15','Oral eval child under 3, Prophylaxis-child'),
  ];
- return {v:3,lang:'es',tab:'sheet',dentist:'d1',date:TODAY,dentists,patients,fees:PD.defaultFees(),visits,implantIdx:0,approved:{},open:{},nextVisit:n+1,nextPat:16};
+ return {v:4,lang:'es',tab:'sheet',dentist:'d1',date:TODAY,dentists,patients,fees:PD.defaultFees(),visits,implantIdx:0,approved:{},open:{},nextVisit:n+1,nextPat:18};
 }
 
 let S;
-try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===3&&Array.isArray(p.visits))S=p;}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===4&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
 let FOCUS=null; // visit id of the selected row
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
