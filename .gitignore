@@ -9,3 +9,7 @@
 
 .DS_Store
 node_modules/
+
+# Vercel CLI link
+.vercel
+.env*

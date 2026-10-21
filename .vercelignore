@@ -1,0 +1,6 @@
+.env
+.env.*
+*.xlsx
+*.xls
+*.csv
+.DS_Store
