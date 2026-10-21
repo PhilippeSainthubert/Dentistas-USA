@@ -285,15 +285,16 @@ var PD = (function () {
     }
     for (; rec > 0; rec--) parts.push({ id: "rec", qty: 1 });
 
-    // core build-up + crown prep on the same tooth has its own combined price
+    // core build-up + crown prep on the same tooth has its own combined price (no tooth given on either = same tooth)
     var preps = {};
-    rest.forEach(function (it) { if (it.k === "crownprep" && it.tooth) preps[it.tooth] = it; });
+    rest.forEach(function (it) { if (it.k === "crownprep") preps[it.tooth || "_"] = it; });
     var merged = {};
     rest.forEach(function (it) {
-      if (it.k === "core" && it.tooth && preps[it.tooth] && !merged[it.tooth]) { merged[it.tooth] = true; parts.push({ id: "coreprep", qty: 1, tooth: it.tooth }); }
+      var key = it.tooth || "_";
+      if (it.k === "core" && preps[key] && !merged[key]) { merged[key] = true; parts.push({ id: "coreprep", qty: 1, tooth: it.tooth }); }
     });
     rest.forEach(function (it) {
-      if ((it.k === "core" || it.k === "crownprep") && it.tooth && merged[it.tooth]) return;
+      if ((it.k === "core" || it.k === "crownprep") && merged[it.tooth || "_"]) return;
       if (it.k === "fill") parts.push({ id: fillId(it.tooth, it.surf), qty: 1, tooth: it.tooth, surf: it.surf });
       else parts.push({ id: it.k, qty: it.n && it.k !== "btw" ? it.n : 1, tooth: it.tooth });
     });
