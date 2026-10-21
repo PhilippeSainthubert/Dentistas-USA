@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cómo funciona · Hoja y app</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d2939'/%3E%3Cpath d='M11.5 7C9 7 7.6 9 7.6 11.4c0 2 .8 3.4 1.4 5.2.6 1.9.8 4.2 1.6 6.4.4 1.1 1.7 1.1 2.1 0 .6-1.7.9-4.4 2.9-4.4s2.3 2.7 2.9 4.4c.4 1.1 1.7 1.1 2.1 0 .8-2.2 1-4.5 1.6-6.4.6-1.8 1.4-3.2 1.4-5.2C24.4 9 23 7 20.5 7c-1.5 0-2.3.7-4 .7S13 7 11.5 7Z' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: explainer page. Header, the four-step flow, then the live demo: a spreadsheet pane and an app pane side by side, sharing one state. */
+:root{
+  --bg:#f4f6fa; --surface:#ffffff; --sunk:#eef2f7; --ink:#1b2433; --muted:#5c6b80; --line:#dfe5ee; --grid:#d9dee6;
+  --nav:#1d2939; --nav-ink:#c9d3e0;
+  --primary:#0f62d6; --primary-ink:#ffffff; --primary-soft:#e6effd;
+  --sheet:#188038; --sheet-soft:#e6f4ea; --lock:#f1f3f4;
+  --ok:#14794b; --ok-soft:#e0f3e8; --warn:#9a5800; --warn-soft:#fcefd9; --bad:#bf2f26; --bad-soft:#fce4e1;
+  --flash:#fff3b0;
+  --font-ui:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1218; --surface:#151c26; --sunk:#1b2431; --ink:#e7ecf3; --muted:#9ba7b7; --line:#283343; --grid:#2c3848;
+  --nav:#0a0f15; --nav-ink:#93a1b4;
+  --primary:#7aa2ff; --primary-ink:#0a1020; --primary-soft:#1a2646;
+  --sheet:#5fc47f; --sheet-soft:#14291b; --lock:#1f2733;
+  --ok:#5ccb97; --ok-soft:#12291f; --warn:#f0b45c; --warn-soft:#2d2213; --bad:#ff7e72; --bad-soft:#351a1a;
+  --flash:#4a4214;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d1218; --surface:#151c26; --sunk:#1b2431; --ink:#e7ecf3; --muted:#9ba7b7; --line:#283343; --grid:#2c3848;
+  --nav:#0a0f15; --nav-ink:#93a1b4;
+  --primary:#7aa2ff; --primary-ink:#0a1020; --primary-soft:#1a2646;
+  --sheet:#5fc47f; --sheet-soft:#14291b; --lock:#1f2733;
+  --ok:#5ccb97; --ok-soft:#12291f; --warn:#f0b45c; --warn-soft:#2d2213; --bad:#ff7e72; --bad-soft:#351a1a;
+  --flash:#4a4214;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1320px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+header.top{background:var(--nav);color:var(--nav-ink)}
+header.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px}
+.plate{background:#ffffff;border-radius:10px;padding:6px 10px;display:block;flex:none}
+.plate img{display:block;height:30px;width:auto}
+header.top .title{flex:1;min-width:220px}
+header.top h1{font-size:1.15rem;color:#ffffff}
+header.top .title span{font-size:.82rem}
+header.top a{color:#ffffff;font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:.9rem}
+.btn{border:0;background:var(--primary);color:var(--primary-ink);font-weight:700;padding:9px 16px;border-radius:8px;white-space:nowrap}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:.86rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.play{background:#ffffff;color:var(--nav)}
+
+main{padding-block:22px 56px;display:flex;flex-direction:column;gap:22px}
+.lead{font-size:1.05rem;max-width:80ch;color:var(--muted)}
+.lead b{color:var(--ink)}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.step .n{font-size:.74rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--primary)}
+.step b{font-size:1rem}
+.step p{font-size:.88rem;color:var(--muted)}
+
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.capbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--sunk);min-height:56px}
+.capbar .cap{flex:1;font-weight:700;font-size:1.02rem}
+.capbar .sync{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:var(--ok);background:var(--ok-soft);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.capbar .sync i{width:8px;height:8px;border-radius:50%;background:currentColor;display:block}
+.capbar .sync.pulse{animation:pulse 1s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 55%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.progress{height:3px;background:var(--line)}
+.progress i{display:block;height:100%;width:0;background:var(--primary)}
+.panes{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+@media (max-width:1000px){.panes{grid-template-columns:minmax(0,1fr)}}
+.pane{min-width:0;display:flex;flex-direction:column}
+.pane+.pane{border-left:1px solid var(--line)}
+@media (max-width:1000px){.pane+.pane{border-left:0;border-top:1px solid var(--line)}}
+.ph{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.ph .ic{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;flex:none}
+.ph .ic svg{width:16px;height:16px}
+.ph b{font-size:.95rem}
+.ph .sub{font-size:.78rem;color:var(--muted)}
+.touring .pane{pointer-events:none}
+
+/* spreadsheet look */
+.sheetwrap{overflow-x:auto;flex:1}
+table.sheet{border-collapse:collapse;font-size:.84rem;min-width:720px;width:100%;table-layout:fixed}
+.sheet th,.sheet td{border:1px solid var(--grid);padding:0;vertical-align:middle;height:34px}
+.sheet thead th{background:var(--sunk);color:var(--muted);font-weight:500;font-family:var(--font-mono);font-size:.72rem;text-align:center}
+.sheet thead tr.lbl th{font-family:var(--font-ui);font-weight:700;font-size:.76rem;color:var(--ink);text-align:left;padding:0 8px}
+.sheet .rn{background:var(--sunk);color:var(--muted);font-family:var(--font-mono);font-size:.7rem;text-align:center;width:36px}
+.sheet td.lk{background:var(--lock)}
+.sheet .lock{font-size:.7rem}
+.sheet td .cv{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet td.num .cv{text-align:right;font-family:var(--font-mono)}
+.sheet input.cell,.sheet select.cell{display:block;width:100%;height:33px;border:0;background:transparent;padding:0 8px;border-radius:0}
+.sheet input.cell:focus,.sheet select.cell:focus{outline:2px solid var(--sheet);outline-offset:-2px}
+.chips{display:flex;flex-wrap:wrap;gap:3px;padding:3px 4px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:2px;background:var(--sheet-soft);color:var(--ink);border-radius:999px;padding:1px 4px 1px 8px;font-size:.74rem;white-space:nowrap}
+.chip button{border:0;background:none;color:var(--muted);padding:0 3px;font-size:.85rem;line-height:1}
+.chip.free{background:var(--warn-soft);color:var(--warn);padding-right:8px;font-style:italic}
+select.addc{border:1px dashed var(--grid);background:transparent;color:var(--sheet);font-weight:700;font-size:.74rem;border-radius:999px;padding:1px 4px;max-width:120px}
+.typing{font-family:var(--font-ui)}
+.typing::after{content:"|";color:var(--sheet);animation:blink 1s steps(1) infinite;margin-left:1px}
+@keyframes blink{50%{opacity:0}}
+td.flash,li.flash,.row.flash{animation:flash 1.3s ease-out}
+@keyframes flash{0%,30%{background:var(--flash)}100%{background:inherit}}
+.sheettabs{display:flex;gap:2px;background:var(--sunk);border-top:1px solid var(--grid);padding:0 6px;overflow-x:auto}
+.stab{padding:7px 14px;font-size:.8rem;color:var(--muted);white-space:nowrap;border-top:3px solid transparent}
+.stab.on{background:var(--surface);color:var(--sheet);font-weight:700;border-top-color:var(--sheet)}
+.st{font-size:.74rem;font-weight:700;padding:0 8px;white-space:nowrap}
+.st.ok{color:var(--ok)}.st.bad{color:var(--bad)}.st.warn{color:var(--warn)}.st.none{color:var(--muted)}
+
+/* app pane */
+.roles{display:flex;gap:2px;padding:8px 10px;border-bottom:1px solid var(--line);overflow-x:auto}
+.role{border:0;background:none;padding:7px 12px;border-radius:7px;font-weight:700;color:var(--muted);white-space:nowrap}
+.role[aria-selected="true"]{background:var(--primary-soft);color:var(--primary)}
+.appbody{padding:14px;display:flex;flex-direction:column;gap:14px;flex:1}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.card h3{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.form input,.form select{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface)}
+.formchips{display:flex;flex-wrap:wrap;gap:4px;grid-column:1/-1}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;flex-wrap:wrap}
+.row .who{flex:1;min-width:150px}
+.row .who b{display:block;font-size:.9rem}
+.row .who span{font-size:.76rem;color:var(--muted)}
+.row .amt{font-family:var(--font-mono);font-size:.88rem;min-width:72px;text-align:right}
+.row select{border:1px solid var(--line);border-radius:7px;padding:5px 8px;background:var(--surface);max-width:190px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.none{background:var(--sunk);color:var(--muted)}
+.sugg{font-size:.82rem}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi span{display:block;font-size:.74rem;font-weight:700;color:var(--muted)}
+.kpi b{font-family:var(--font-mono);font-size:1.25rem}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.empty{color:var(--muted);font-size:.88rem}
+.combo{font-size:.76rem;color:var(--ok);font-weight:700}
+.log{border-top:1px solid var(--line);padding:10px 16px;background:var(--sunk)}
+.log h3{font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.log ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:.84rem}
+.log li::before{content:"↔ ";color:var(--ok);font-weight:700}
+
+.who-does{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.who-does{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.who-does,.flow{grid-template-columns:minmax(0,1fr)}}
+.who-does .step b{font-size:.98rem}
+.rules{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.rules h2{font-size:1.05rem;margin-bottom:8px}
+.rules ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:90ch}
+.note{font-size:.84rem;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:8px;font-weight:700;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){td.flash,li.flash,.row.flash,.capbar .sync.pulse{animation:none}.typing::after{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="plate"><img src="brand/logo.png" width="777" height="149" alt="Southern Delaware Dental Specialists"></span>
+    <div class="title"><h1>Cómo funcionan la hoja y la app</h1><span>Simulación con datos inventados</span></div>
+    <a href="/">Ver la app completa</a>
+    <button type="button" class="btn play" id="btn-play" data-action="play">▶ Ver el recorrido (30 s)</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="lead">Cada dentista tiene <b>su hoja de Google Sheets</b>, como su Excel de ahora pero con desplegables. La <b>app trabaja sobre esas mismas hojas</b>: no hay copias ni emails. Lo que se escribe en un lado aparece en el otro al momento. Prueba a cambiar algo en la hoja o en la app.</p>
+
+  <div class="flow">
+    <div class="step"><span class="n">1 · Dentista</span><b>Apunta la visita</b><p>En su hoja o en la app, con los tratamientos del desplegable.</p></div>
+    <div class="step"><span class="n">2 · Carmen</span><b>Pone el seguro</b><p>La app le enseña solo las visitas a las que les falta.</p></div>
+    <div class="step"><span class="n">3 · La app</span><b>Calcula el importe</b><p>Con vuestra tabla y sus combos, y lo escribe en una columna protegida.</p></div>
+    <div class="step"><span class="n">4 · Javier</span><b>Aprueba y paga</b><p>Revisa la quincena, la aprueba y la copia para ADP.</p></div>
+  </div>
+
+  <section class="demo" id="demo" aria-label="Demostración">
+    <div class="capbar"><span class="cap" id="cap">Cambia algo en la hoja de Laura o en la app y mira cómo se actualiza el otro lado.</span><span class="sync" id="sync"><i></i>Hoja y app sincronizadas</span><button type="button" class="btn sec sm" id="btn-stop" data-action="stop" hidden>Saltar</button></div>
+    <div class="progress"><i id="prog"></i></div>
+    <div class="panes">
+      <div class="pane">
+        <div class="ph"><span class="ic" style="background:var(--sheet-soft);color:var(--sheet)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12"/></svg></span><div><b>Visitas · Laura Méndez</b><div class="sub">Google Sheets · compartida con Laura, Carmen y Javier</div></div></div>
+        <div class="sheetwrap" id="sheet"></div>
+        <div class="sheettabs"><span class="stab on">Visitas</span><span class="stab">Precios 🔒</span><span class="stab">Quincena 🔒</span></div>
+      </div>
+      <div class="pane">
+        <div class="ph"><span class="ic" style="background:var(--primary-soft);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span><div><b>La app</b><div class="sub">Lo que ve cada persona</div></div></div>
+        <div class="roles" role="tablist" id="roles"></div>
+        <div class="appbody" id="app"></div>
+      </div>
+    </div>
+    <div class="log"><h3>Últimos cambios</h3><ul id="log"></ul></div>
+  </section>
+
+  <div class="who-does">
+    <div class="step"><span class="n">Dentistas</span><b>Siguen con su hoja</b><p>Rellenan paciente y tratamientos. Quien quiera, lo hace desde la app en el PC, la tablet o el móvil.</p></div>
+    <div class="step"><span class="n">Carmen</span><b>Deja de perseguir Excel</b><p>Ve en la app qué visitas no tienen seguro y lo pone en un clic.</p></div>
+    <div class="step"><span class="n">María</span><b>Ya no hace este paso</b><p>El importe lo calcula la app con vuestra tabla, combos incluidos.</p></div>
+    <div class="step"><span class="n">Javier</span><b>Solo revisa avisos</b><p>Aprueba la quincena cuando no queda nada pendiente y la copia para ADP.</p></div>
+  </div>
+
+  <div class="rules">
+    <h2>Reglas para que la hoja y la app no choquen</h2>
+    <ul>
+      <li><b>El importe, el estado y la aprobación</b> los escribe solo la app, en columnas protegidas de la hoja (en gris). Se ven, pero no se pueden tocar.</li>
+      <li><b>Los tratamientos y el seguro</b> se eligen de desplegables con vuestros nombres. La tabla de precios está en una pestaña protegida que solo cambia Javier.</li>
+      <li><b>Si alguien escribe algo que no está en la lista</b>, como "impresiones", la app no lo calcula a ciegas: lo marca para revisar y propone el nombre correcto.</li>
+      <li><b>Una hoja por dentista.</b> Cada uno solo ve la suya; la app junta todas para Carmen y Javier.</li>
+      <li><b>Todo vive en vuestro Google Workspace</b>, con el acuerdo HIPAA de Google. Si un día queréis llevarlo a vuestro servidor, los datos son vuestros.</li>
+    </ul>
+  </div>
+  <p class="note">Simulación con pacientes inventados y la tabla de precios real de la clínica. Nada de lo que escribes aquí se guarda ni sale del navegador.</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="engine.js"></script>
+<script>
+(function(){
+"use strict";
+const DD=[['comp','Comp exam'],['periodic','Periodic exam'],['limited','Limited exam'],['btw4','4 BW'],['btw2','2 BW'],['pa','PA'],['pan','Pano'],['fms','FMX'],['prophy','Prophylaxis'],['fluoride','Fluoride'],['post1','Composite, 1 surface'],['post2','Composite, 2 surfaces'],['crownprep','Crown prep / impression'],['core','Core build-up'],['crowndel','Crown delivery'],['extsimple','Extraction'],['endomolar','Root canal, molar']];
+const LBL=Object.fromEntries(DD);
+const SUGGEST=[[/impres|medida|impression|scan/,'crownprep'],[/limpieza|cleaning|prophy/,'prophy'],[/fluor/,'fluoride']];
+const ROLES=[['dentist','Laura (dentista)'],['carmen','Carmen'],['javier','Javier']];
+const planShort=k=>k&&PD.PLANS[k]?PD.PLANS[k].es.replace(/\s*\(.*\)$/,''):'';
+const money=v=>v==null?'':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+
+function base(){
+ return {rows:[
+  {id:'r1',date:'21/10',patient:'Hale, Marcus',items:['periodic','btw4','prophy'],free:'',plan:'delta',approved:false},
+  {id:'r2',date:'21/10',patient:'Osei, Kwame',items:['limited','pa'],free:'',plan:'guardian',approved:false},
+  {id:'r3',date:'21/10',patient:'Fischer, Owen',items:['crowndel'],free:'',plan:'delta',approved:false},
+ ],role:'dentist',typing:null,flash:{},log:['Así está la hoja de Laura esta mañana.'],next:4,draft:{patient:'',items:[]},toast:''};
+}
+let S=base(),NOW=0,TOUR=null;
+const nowS=()=>TOUR?TOUR.t:performance.now()/1000;
+
+function engineItems(ids){
+ const out=[];let pa=0;
+ ids.forEach(id=>{let m;if((m=id.match(/^btw(\d)$/)))out.push({k:'btw',n:+m[1]});else if(id==='pa')pa++;else out.push({k:id});});
+ if(pa)out.push({k:'pa',n:pa});
+ return out;
+}
+function evalRow(r){
+ if(r.free){const hit=SUGGEST.find(([re])=>re.test(r.free.toLowerCase()));return {status:'review',label:'Revisar',cls:'warn',total:null,suggest:hit?hit[1]:null};}
+ if(!r.items.length)return {status:'empty',label:'Sin tratamientos',cls:'none',total:null};
+ const e=PD.priceVisit(engineItems(r.items),r.plan||null);
+ const combo=e.parts.find(p=>PD.BUNDLES.some(b=>b.id===p.id));
+ if(!e.col)return {status:'noIns',label:'Falta seguro',cls:'bad',total:null};
+ if(e.alerts.some(a=>a==='noPrice'||a==='notInTable'))return {status:'review',label:'Sin precio',cls:'bad',total:e.total};
+ return {status:'ok',label:'Lista',cls:'ok',total:e.total,combo:combo?PD.ITEM[combo.id].es:null};
+}
+function flash(key){S.flash[key]=nowS();}
+function isFlash(key){const t=S.flash[key];return t!=null&&nowS()-t>=0&&nowS()-t<1.3;}
+function logIt(msg){S.log.unshift(msg);S.log=S.log.slice(0,4);}
+function pulse(){const el=$('#sync');el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');}
+
+/* ---------- render ---------- */
+function render(){
+ renderSheet();renderRoles();renderApp();
+ $('#log').innerHTML=S.log.map(l=>`<li>${esc(l)}</li>`).join('');
+}
+function cellCls(r,col,extra){return `${extra||''} ${isFlash(r.id+':'+col)?'flash':''}`;}
+function renderSheet(){
+ const ty=S.typing;
+ const rows=S.rows.map((r,i)=>{
+  const e=evalRow(r);
+  const chips=r.items.map((id,j)=>`<span class="chip">${esc(LBL[id]||id)}<button type="button" data-action="sheet-rm" data-r="${r.id}" data-i="${j}" aria-label="Quitar ${esc(LBL[id]||id)}">×</button></span>`).join('')+(r.free?`<span class="chip free">${esc(r.free)}</span>`:'')+(ty&&ty.row===r.id&&ty.col==='C'?`<span class="typing">${esc(ty.text)}</span>`:'');
+  return `<tr>
+   <td class="rn">${i+2}</td>
+   <td><div class="cv">${esc(r.date)}</div></td>
+   <td class="${cellCls(r,'B')}"><input class="cell" data-f="patient" data-r="${r.id}" value="${esc(r.patient)}" aria-label="Paciente"></td>
+   <td class="${cellCls(r,'C')}"><div class="chips">${chips}<select class="addc" data-f="sheet-add" data-r="${r.id}" aria-label="Añadir tratamiento"><option value="">+ ▾</option>${DD.map(([id,l])=>`<option value="${id}">${esc(l)}</option>`).join('')}</select></div></td>
+   <td class="${cellCls(r,'D')}"><select class="cell" data-f="sheet-plan" data-r="${r.id}" aria-label="Seguro"><option value=""></option>${PD.PLAN_ORDER.map(k=>`<option value="${k}" ${r.plan===k?'selected':''}>${esc(planShort(k))}</option>`).join('')}</select></td>
+   <td class="lk num ${cellCls(r,'E')}"><div class="cv">${e.total!=null?money(e.total):''}</div></td>
+   <td class="lk ${cellCls(r,'F')}"><span class="st ${e.cls}">${esc(e.label)}</span></td>
+   <td class="lk ${cellCls(r,'G')}"><div class="cv">${r.approved?'Sí':''}</div></td></tr>`;
+ }).join('');
+ const newText=ty&&ty.row==='new'?`<div class="cv typing">${esc(ty.text)}</div>`:`<input class="cell" id="new-row" placeholder="Escribe un paciente…" aria-label="Paciente nuevo">`;
+ $('#sheet').innerHTML=`<table class="sheet"><colgroup><col style="width:36px"><col style="width:58px"><col style="width:132px"><col><col style="width:128px"><col style="width:86px"><col style="width:96px"><col style="width:76px"></colgroup>
+ <thead><tr><th class="rn"></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th></tr>
+ <tr class="lbl"><th class="rn">1</th><th>Fecha</th><th>Paciente</th><th>Tratamientos</th><th>Seguro</th><th>Importe <span class="lock">🔒</span></th><th>Estado <span class="lock">🔒</span></th><th>Aprobado <span class="lock">🔒</span></th></tr></thead>
+ <tbody>${rows}<tr><td class="rn">${S.rows.length+2}</td><td></td><td>${newText}</td><td></td><td></td><td class="lk"></td><td class="lk"></td><td class="lk"></td></tr></tbody></table>`;
+}
+function renderRoles(){$('#roles').innerHTML=ROLES.map(([k,l])=>`<button type="button" class="role" role="tab" data-action="role" data-role="${k}" aria-selected="${S.role===k}">${l}</button>`).join('');}
+function rowItem(r,e,extra){return `<li class="row ${isFlash('app:'+r.id)?'flash':''}"><div class="who"><b>${esc(r.patient)}</b><span>${esc([...r.items.map(id=>LBL[id]||id),r.free].filter(Boolean).join(', '))}</span>${e.combo?`<div class="combo">Combo: ${esc(e.combo)}</div>`:''}</div>${extra||''}<span class="amt">${e.total!=null?money(e.total):''}</span><span class="pill ${e.cls}">${esc(e.label)}</span></li>`;}
+function renderApp(){
+ const ev=S.rows.map(r=>[r,evalRow(r)]);
+ let h='';
+ if(S.role==='dentist'){
+  h=`<div class="card"><h3>Registrar visita</h3><div class="form"><input id="f-patient" placeholder="Paciente" value="${esc(S.draft.patient)}" aria-label="Paciente"><select id="f-add" aria-label="Añadir tratamiento"><option value="">+ Añadir tratamiento</option>${DD.map(([id,l])=>`<option value="${id}">${esc(l)}</option>`).join('')}</select><div class="formchips">${S.draft.items.map((id,j)=>`<span class="chip">${esc(LBL[id])}<button type="button" data-action="draft-rm" data-i="${j}" aria-label="Quitar">×</button></span>`).join('')}</div></div><div class="acts"><button type="button" class="btn sm" data-action="draft-save">Guardar visita</button></div></div>
+  <div class="card"><h3>Mis visitas de hoy</h3><ul class="list">${ev.map(([r,e])=>rowItem(r,e)).join('')}</ul></div>`;
+ }else if(S.role==='carmen'){
+  const need=ev.filter(([,e])=>e.status==='noIns'),rev=ev.filter(([,e])=>e.status==='review');
+  h=`<div class="card"><h3>Falta el seguro</h3>${need.length?`<ul class="list">${need.map(([r,e])=>rowItem(r,e,`<select data-f="app-plan" data-r="${r.id}" aria-label="Seguro de ${esc(r.patient)}"><option value="">Elige seguro</option>${PD.PLAN_ORDER.map(k=>`<option value="${k}">${esc(planShort(k))}</option>`).join('')}</select>`)).join('')}</ul>`:'<p class="empty">Nada pendiente. Todas las visitas tienen seguro.</p>'}</div>
+  <div class="card"><h3>Para revisar</h3>${rev.length?`<ul class="list">${rev.map(([r,e])=>rowItem(r,e,e.suggest?`<span class="sugg">«${esc(r.free)}» no está en la lista. <button type="button" class="btn sec sm" data-action="fix" data-r="${r.id}">Cambiar por «${esc(LBL[e.suggest])}»</button></span>`:'')).join('')}</ul>`:'<p class="empty">Nada que revisar.</p>'}</div>`;
+ }else{
+  const total=ev.reduce((s,[,e])=>s+(e.total||0),0),avisos=ev.filter(([,e])=>e.status!=='ok').length,approved=S.rows.length&&S.rows.every(r=>r.approved);
+  h=`<div class="kpis"><div class="kpi"><span>A pagar a Laura</span><b>${money(total)}</b></div><div class="kpi"><span>Visitas</span><b>${S.rows.length}</b></div><div class="kpi"><span>Avisos</span><b style="color:var(--${avisos?'bad':'ok'})">${avisos}</b></div></div>
+  <div class="card"><h3>Quincena del 12 al 23 de octubre</h3><ul class="list">${ev.map(([r,e])=>rowItem(r,e)).join('')}</ul>
+  <div class="acts"><button type="button" class="btn sm" data-action="approve" ${avisos||approved?'disabled':''}>${approved?'Quincena aprobada':'Aprobar quincena'}</button><button type="button" class="btn sec sm" data-action="adp">Copiar para ADP</button></div>${avisos?'<p class="empty">Para aprobar no puede quedar ningún aviso.</p>':''}</div>`;
+ }
+ $('#app').innerHTML=h;
+}
+let toastT;
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2000);}
+
+/* ---------- actions (shared by people and the tour) ---------- */
+const A={
+ addRow(patient){const r={id:'r'+(S.next++),date:'21/10',patient,items:[],free:'',plan:null,approved:false};S.rows.push(r);flash(r.id+':B');flash('app:'+r.id);logIt(`Laura escribió en su hoja un paciente nuevo: ${patient}.`);return r;},
+ addItem(r,id){r.items.push(id);r.approved=false;flash(r.id+':C');flash('app:'+r.id);flash(r.id+':E');logIt(`Hoja → app: ${r.patient}, ${LBL[id]}.`);},
+ setPlan(r,k,from){r.plan=k||null;r.approved=false;flash(r.id+':D');flash(r.id+':E');flash('app:'+r.id);logIt(from==='app'?`App → hoja: Carmen puso el seguro de ${r.patient} (${planShort(k)}).`:`Hoja → app: seguro de ${r.patient}, ${planShort(k)}.`);},
+ setFree(r,text){r.free=text;flash(r.id+':C');flash(r.id+':F');flash('app:'+r.id);logIt(`Hoja → app: alguien escribió «${text}», que no está en la lista.`);},
+ fix(r){const e=evalRow(r);if(!e.suggest)return;r.items.push(e.suggest);r.free='';flash(r.id+':C');flash(r.id+':E');flash(r.id+':F');flash('app:'+r.id);logIt(`App → hoja: «${LBL[e.suggest]}» en lugar del texto libre.`);},
+ approve(){S.rows.forEach(r=>{r.approved=true;flash(r.id+':G');});logIt('App → hoja: Javier aprobó la quincena. Columna «Aprobado» rellenada.');},
+};
+
+/* ---------- tour: a timeline replayed from scratch for any time t ---------- */
+const CAPS=[[0,'Laura termina con un paciente y lo apunta en su hoja, como hoy en su Excel.'],[5,'La app lo ve al instante. Carmen ve que a esa visita le falta el seguro.'],[8,'Carmen elige el seguro en la app… y aparece en la hoja de Laura.'],[11,'La app calcula el importe con vuestra tabla, combo incluido, y lo escribe en una columna protegida.'],[14.5,'Si alguien escribe algo que no está en la lista…'],[18.5,'…la app lo marca y propone el nombre correcto. Un clic y listo.'],[23.5,'Javier revisa la quincena, la aprueba y la copia para ADP.'],[28.5,'Todo vive en vuestro Google Workspace: sin emails y sin copiar nada.']];
+const TOUR_LEN=32;
+function typeAt(t,t0,t1,text){if(t<t0)return null;if(t>=t1)return text;return text.slice(0,Math.max(1,Math.round(text.length*(t-t0)/(t1-t0))));}
+function tourState(t){
+ S=base();S.log=['Así está la hoja de Laura esta mañana.'];
+ const at=(time,fn)=>{if(t>=time){const saved=TOUR.t;TOUR.t=time;fn();TOUR.t=saved;}};
+ let r4=null,r5=null;
+ S.role='dentist';
+ if(t>=1&&t<2.6)S.typing={row:'new',col:'B',text:typeAt(t,1,2.6,'Ortiz, Lucía')};
+ at(2.6,()=>{r4=A.addRow('Ortiz, Lucía');});
+ at(3.2,()=>A.addItem(r4,'comp'));at(3.8,()=>A.addItem(r4,'btw4'));at(4.4,()=>A.addItem(r4,'pan'));
+ if(t>=5)S.role='carmen';
+ at(9.2,()=>A.setPlan(r4,'mc_adult','app'));
+ if(t>=11)S.role='dentist';
+ at(11.2,()=>{flash(r4.id+':E');flash('app:'+r4.id);logIt(`La app calculó ${money(evalRow(r4).total)} para ${r4.patient} y lo escribió en «Importe».`);});
+ if(t>=14.5&&t<15.7)S.typing={row:'new',col:'B',text:typeAt(t,14.5,15.7,'Chen, Mia')};
+ at(15.7,()=>{r5=A.addRow('Chen, Mia');});
+ if(t>=16&&t<17.2)S.typing={row:r5.id,col:'C',text:typeAt(t,16,17.2,'impresiones')};
+ at(17.2,()=>A.setFree(r5,'impresiones'));
+ if(t>=18.5)S.role='carmen';
+ at(20.5,()=>A.fix(r5));
+ at(21.3,()=>A.setPlan(r5,'noins','app'));
+ if(t>=23.5)S.role='javier';
+ at(25,()=>A.approve());
+ at(26.5,()=>{logIt('Javier copió la quincena para ADP.');S.toast='Quincena copiada para ADP';});
+ const cap=[...CAPS].reverse().find(([s])=>t>=s);
+ return cap?cap[1]:'';
+}
+let lastCap='',lastToastAt=-1;
+window.tourAt=function(t){
+ TOUR=TOUR||{t:0};TOUR.t=t;
+ const cap=tourState(t);
+ $('#cap').textContent=cap;
+ $('#prog').style.width=Math.min(100,100*t/TOUR_LEN)+'%';
+ render();
+ if(Object.values(S.flash).some(ts=>t-ts>=0&&t-ts<0.15))pulse();
+ if(S.toast&&lastToastAt<0){lastToastAt=t;toast(S.toast);}
+ if(!S.toast)lastToastAt=-1;
+};
+let raf=0;
+function play(){
+ stop(true);
+ document.body.classList.add('touring');$('#btn-stop').hidden=false;
+ TOUR={t:0};lastToastAt=-1;const t0=performance.now();
+ const tick=()=>{const t=(performance.now()-t0)/1000;window.tourAt(Math.min(t,TOUR_LEN));if(t<TOUR_LEN)raf=requestAnimationFrame(tick);else finish();};
+ raf=requestAnimationFrame(tick);
+ $('#demo').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+}
+function finish(){cancelAnimationFrame(raf);TOUR=null;document.body.classList.remove('touring');$('#btn-stop').hidden=true;$('#btn-play').textContent='↺ Repetir el recorrido';S.typing=null;$('#cap').textContent='Fin del recorrido. Ahora puedes probarlo tú: cambia algo en la hoja o en la app.';render();}
+function stop(silent){if(!TOUR)return;cancelAnimationFrame(raf);TOUR=null;document.body.classList.remove('touring');$('#btn-stop').hidden=true;S.typing=null;if(!silent){$('#cap').textContent='Recorrido parado. Puedes probarlo tú.';render();}}
+
+/* ---------- people ---------- */
+function rowById(id){return S.rows.find(r=>r.id===id);}
+function changed(){pulse();render();}
+document.addEventListener('click',ev=>{
+ const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
+ if(a==='play')play();
+ else if(a==='stop')stop(false);
+ else if(TOUR)return;
+ else if(a==='role'){S.role=b.dataset.role;render();}
+ else if(a==='sheet-rm'){const r=rowById(b.dataset.r);r.items.splice(+b.dataset.i,1);r.approved=false;flash(r.id+':C');flash(r.id+':E');flash('app:'+r.id);logIt(`Hoja → app: ${r.patient}, tratamiento quitado.`);changed();}
+ else if(a==='draft-rm'){S.draft.items.splice(+b.dataset.i,1);renderApp();}
+ else if(a==='draft-save'){const name=$('#f-patient').value.trim();if(!name||!S.draft.items.length){toast('Escribe el paciente y añade al menos un tratamiento');return;}const r=A.addRow(name);S.draft.items.forEach(id=>r.items.push(id));S.log[0]=`App → hoja: Laura registró a ${name} desde la app; nueva fila en su hoja.`;flash(r.id+':C');S.draft={patient:'',items:[]};changed();}
+ else if(a==='fix'){A.fix(rowById(b.dataset.r));changed();}
+ else if(a==='approve'){A.approve();changed();}
+ else if(a==='adp'){const ev=S.rows.map(r=>[r,evalRow(r)]);const tsv=['Dentista\tPaciente\tFecha\tImporte',...ev.map(([r,e])=>`Laura Méndez\t${r.patient}\t${r.date}\t${e.total!=null?e.total.toFixed(2):''}`)].join('\n');const ok=()=>toast('Quincena copiada para ADP');try{navigator.clipboard.writeText(tsv).then(ok,ok);}catch(e){ok();}logIt('Javier copió la quincena para ADP.');render();}
+});
+document.addEventListener('change',ev=>{
+ if(TOUR)return;const el=ev.target,f=el.dataset.f;
+ if(el.id==='new-row'){const v=el.value.trim();if(v){A.addRow(v);changed();}return;}
+ if(el.id==='f-add'){if(el.value){S.draft.patient=$('#f-patient').value;S.draft.items.push(el.value);renderApp();}return;}
+ const r=el.dataset.r&&rowById(el.dataset.r);if(!r)return;
+ if(f==='patient'){const v=el.value.trim();if(v){r.patient=v;flash(r.id+':B');flash('app:'+r.id);logIt(`Hoja → app: paciente cambiado a ${v}.`);changed();}}
+ else if(f==='sheet-add'&&el.value){A.addItem(r,el.value);changed();}
+ else if(f==='sheet-plan'){A.setPlan(r,el.value,'sheet');changed();}
+ else if(f==='app-plan'&&el.value){A.setPlan(r,el.value,'app');changed();}
+});
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&(ev.target.id==='new-row'||ev.target.dataset.f==='patient')){ev.preventDefault();ev.target.blur();}});
+
+render();
+if(new URLSearchParams(location.search).has('play')||location.hash==='#play')setTimeout(play,600);
+})();
+</script>
+</body>
+</html>
