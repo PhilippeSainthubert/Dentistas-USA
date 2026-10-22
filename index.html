@@ -136,6 +136,13 @@ main{padding-block:4px 56px}
 .addform{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--sunk);border-radius:12px}
 .addform label{font-weight:700;font-size:.92rem}
 .addform input{width:100%}
+.insrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.insrow label{font-weight:700}
+.insrow select{min-width:220px}
+.insrow .src{font-size:.82rem;color:var(--muted)}
+.insrow .src.missing{color:var(--bad);font-weight:700}
+.fix{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.fix select{min-width:220px}
 .warnbox{background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:.9rem}
 
 /* summary */
@@ -199,7 +206,7 @@ table.plain{width:100%;border-collapse:collapse;font-size:.95rem}
 <script>
 (function(){
 "use strict";
-const LS_KEY='pd-delaware-v7';
+const LS_KEY='pd-delaware-v8';
 const DAYS=['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'];
 const TODAY='2026-10-21';
 const PAGES=['dentist','summary','fees'];
@@ -224,9 +231,9 @@ const PLAN_FOR_COL={medicaid:'mc_adult',delta:'delta',guardian:'guardian',privat
 const T={
 en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Prototype by Rianex. Fees from your fee table; patients, dentists and the Dentrix link are simulated.',reset:'Reset sample data',resetDone:'Sample data restored',locale:'en-US',
  tab_dentist:'My patients',tab_summary:'Summary',tab_fees:'Fees',
- iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',noAppt:'Walk-in',addPatient:'+ Add patient',npLabel:'Patient name',npPh:'Last, First (searches Dentrix)',npHelp:'If Dentrix does not have them yet, they are added without insurance and Javier sees it in the summary.',npAdded:n=>`${n} added to today`,npNeed:'Type the patient name',
+ iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',noAppt:'Walk-in',addPatient:'+ Add patient',npLabel:'Patient name',npPh:'Last, First (searches Dentrix)',npHelp:'If Dentrix already has the patient, their Dentrix insurance is used.',npAdded:n=>`${n} added to today`,npNeed:'Type the patient name',
  done:'Done',check:'Check',todo:'To do',noInsBadge:'No insurance',
- pick:'Pick a patient on the left.',insFrom:'Insurance (from Dentrix):',insMissing:'Dentrix has no insurance for this patient. Javier will see it in the summary.',
+ pick:'Pick a patient on the left.',insLabel:'Insurance',insPick:'Choose insurance',srcDentrix:'from Dentrix',srcManual:'set by hand',srcNone:'not in Dentrix',insSet:(n,i)=>`${n}: ${i}`,npInsLabel:'Insurance (only if Dentrix does not have them)',insMissing:'Dentrix has no insurance for this patient. Choose it here, or Javier can do it from the summary.',
  what:'What did you do?',codePh:'Type a code or a name, e.g. D0120 or periodic',add:'Add',common:'Most used',nothing:'Nothing added yet. Tap a button or type a code.',
  tooth:'Tooth',prep:'Prep',seat:'Delivery',remove:'Remove',save:'Save',savedMsg:'Saved',savedFor:n=>`Saved for ${n}`,unknownCode:'That code is not in the list. Ask Javier to add it under Fees.',
  sumTitle:'Pay period summary',period:'Pay period: Monday Oct 12 to Friday Oct 23, 2026',k_total:'To pay dentists',k_pat:'Patients',k_alerts:'Alerts',
@@ -239,9 +246,9 @@ en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'
  insList:'Insurance plans: ',combosTitle:'Combos from your table',combosIntro:'When these codes come in the same visit, the combo price is used.',histTitle:'Price changes',noHist:'No changes yet.',implantRule:'Implant crown price',saved:'Saved'},
 es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Prototipo de Rianex. Precios de vuestra tabla; pacientes, dentistas y la conexión con Dentrix son simulados.',reset:'Restablecer ejemplo',resetDone:'Datos de ejemplo restablecidos',locale:'es-ES',
  tab_dentist:'Mis pacientes',tab_summary:'Resumen',tab_fees:'Precios',
- iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',noAppt:'Sin cita',addPatient:'+ Añadir paciente',npLabel:'Nombre del paciente',npPh:'Apellido, Nombre (busca en Dentrix)',npHelp:'Si Dentrix aún no lo tiene, se añade sin seguro y Javier lo ve en el resumen.',npAdded:n=>`${n} añadido al día`,npNeed:'Escribe el nombre del paciente',
+ iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',noAppt:'Sin cita',addPatient:'+ Añadir paciente',npLabel:'Nombre del paciente',npPh:'Apellido, Nombre (busca en Dentrix)',npHelp:'Si Dentrix ya tiene al paciente, se usa su seguro de Dentrix.',npAdded:n=>`${n} añadido al día`,npNeed:'Escribe el nombre del paciente',
  done:'Hecho',check:'Revisar',todo:'Pendiente',noInsBadge:'Sin seguro',
- pick:'Elige un paciente a la izquierda.',insFrom:'Seguro (de Dentrix):',insMissing:'Dentrix no tiene seguro para este paciente. Javier lo verá en el resumen.',
+ pick:'Elige un paciente a la izquierda.',insLabel:'Seguro',insPick:'Elige seguro',srcDentrix:'de Dentrix',srcManual:'puesto a mano',srcNone:'no está en Dentrix',insSet:(n,i)=>`${n}: ${i}`,npInsLabel:'Seguro (solo si Dentrix no lo tiene)',insMissing:'Dentrix no tiene seguro para este paciente. Elígelo aquí o Javier lo pondrá desde el resumen.',
  what:'¿Qué le hiciste?',codePh:'Escribe un código o un nombre, p. ej. D0120 o periódico',add:'Añadir',common:'Los más usados',nothing:'Todavía nada. Pulsa un botón o escribe un código.',
  tooth:'Diente',prep:'Preparación',seat:'Entrega',remove:'Quitar',save:'Guardar',savedMsg:'Guardado',savedFor:n=>`Guardado para ${n}`,unknownCode:'Ese código no está en la lista. Pídele a Javier que lo añada en Precios.',
  sumTitle:'Resumen de la quincena',period:'Quincena del lunes 12 al viernes 23 de octubre de 2026',k_total:'A pagar a dentistas',k_pat:'Pacientes',k_alerts:'Avisos',
@@ -256,7 +263,7 @@ es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',not
 function seed(){
  const dentists=[{id:'d1',name:'Laura Méndez'},{id:'d2',name:'Kevin Park'},{id:'d3',name:'Aisha Rahman'},{id:'d4',name:'Tom Walsh'}];
  // Insurance as Dentrix returns it: a plan key, or null when Dentrix has none
- const patients=[['Hale, Marcus','delta'],['Ortiz, Lucía','mc_adult'],['Brennan, Claire','delta'],['Nguyen, Daniel','guardian'],['Kowalski, Ann','noins'],['Reyes, Tomás','mc_child'],['Whitfield, Grace','delta'],['Osei, Kwame',null],['Lindqvist, Eva','unum'],['Moreau, Julien','delta'],['Patel, Ravi','va'],['Delgado, Rosa','delta'],['Fischer, Owen','delta'],['Santos, Bianca','mc_adult'],['Ibarra, Leo','mc_child'],['Wright, Samuel','mc_adult'],['Chen, Mia','noins'],['Okafor, Grace','guardian'],['Silva, Pedro','delta'],['Murphy, Kate','delta']].map(([name,plan],i)=>({id:'p'+(i+1),name,plan}));
+ const patients=[['Hale, Marcus','delta'],['Ortiz, Lucía','mc_adult'],['Brennan, Claire','delta'],['Nguyen, Daniel','guardian'],['Kowalski, Ann','noins'],['Reyes, Tomás','mc_child'],['Whitfield, Grace','delta'],['Osei, Kwame',null],['Lindqvist, Eva','unum'],['Moreau, Julien','delta'],['Patel, Ravi','va'],['Delgado, Rosa','delta'],['Fischer, Owen','delta'],['Santos, Bianca','mc_adult'],['Ibarra, Leo','mc_child'],['Wright, Samuel','mc_adult'],['Chen, Mia','noins'],['Okafor, Grace','guardian'],['Silva, Pedro','delta'],['Murphy, Kate','delta']].map(([name,plan],i)=>({id:'p'+(i+1),name,plan,src:plan?'dentrix':null}));
  const times=['8:30','9:15','10:00','11:00','12:30','14:00'];
  const C=(code,o)=>Object.assign({code},o||{});
  let n=0;const visits=[];
@@ -271,10 +278,10 @@ function seed(){
  V(20,'d2','p11',0,[C('D0150'),C('D0210')]);V(20,'d2','p5',1,[C('D0150'),C('D1110')]);V(21,'d2','p14',0,[C('D6065',{tooth:'30',stage:'prep'})]);V(21,'d2','p18',1,[C('D0120'),C('D0274'),C('D1110')]);
  V(19,'d3','p9',0,[C('D2393',{tooth:'15'}),C('D1110')]);V(20,'d3','p12',0,[C('D2740',{tooth:'11',stage:'prep'}),C('D2740',{tooth:'15',stage:'prep'})]);V(21,'d3','p19',0,[C('D0171')]);V(21,'d3','p20',1,[C('D4341')]);
  V(19,'d4','p10',0,[C('D7140',{tooth:'1'})]);V(19,'d4','p6',1,[C('D3330',{tooth:'19'})]);V(20,'d4','p7',0,[C('D0120'),C('D1110')]);V(21,'d4','p11',0,[C('D2393',{tooth:'3'})]);V(21,'d4','p15',1,[C('D0145'),C('D1120')]);
- return {v:7,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),customCodes:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,nextPat:patients.length+1,form:null};
+ return {v:8,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),customCodes:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,nextPat:patients.length+1,form:null};
 }
 let S;
-try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===7&&Array.isArray(p.visits))S=p;}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===8&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
 let SAVED_AT=null,ADDING=false;
@@ -351,7 +358,7 @@ function renderDentist(){
  <div class="dgrid">
   <section class="panel"><div class="ph"><h2>${t('today')}</h2><span class="muted" style="font-size:.84rem">${t('fromDentrix')}</span></div>
    <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const e=evalVisit(v);return `<li><button type="button" class="pbtn" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="time">${esc(v.time||t('noAppt'))}</span><span class="nm"><b>${esc(p.name)}</b><span>${pl?esc(pl.name):`<span style="color:var(--bad)">${t('noInsBadge')}</span>`}</span></span>${v.saved&&v.codes.length?`<span class="badge ${e.blocking?'bad':'done'}">${e.blocking?t('check'):t('done')}</span>`:`<span class="badge todo">${t('todo')}</span>`}</button></li>`;}).join('')}</ul>
-   <div class="addp">${ADDING?`<div class="addform"><label for="np-in">${t('npLabel')}</label><input type="text" id="np-in" list="dl-pat" autocomplete="off" placeholder="${esc(t('npPh'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><div class="tools"><button type="button" class="btn sec sm" data-action="np-save">${t('add')}</button><button type="button" class="linkbtn" data-action="np-cancel">${t('f_cancel')}</button></div><p class="muted" style="font-size:.8rem">${t('npHelp')}</p></div>`:`<button type="button" class="btn sec addpbtn" data-action="np-open">${t('addPatient')}</button>`}</div>
+   <div class="addp">${ADDING?`<div class="addform"><label for="np-in">${t('npLabel')}</label><input type="text" id="np-in" list="dl-pat" autocomplete="off" placeholder="${esc(t('npPh'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><label for="np-ins">${t('npInsLabel')}</label>${planSelect('np-ins','np-ins',null)}<div class="tools"><button type="button" class="btn sec sm" data-action="np-save">${t('add')}</button><button type="button" class="linkbtn" data-action="np-cancel">${t('f_cancel')}</button></div><p class="muted" style="font-size:.8rem">${t('npHelp')}</p></div>`:`<button type="button" class="btn sec addpbtn" data-action="np-open">${t('addPatient')}</button>`}</div>
   </section>
   <section class="panel" id="ppanel">${patientPanel()}</section>
  </div>`;
@@ -362,7 +369,8 @@ function patientPanel(){
  const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;
  return `<div class="pb">
   <div class="pt"><h2>${esc(p.name)}</h2><span class="muted mono">${esc(v.time||t('noAppt'))}</span></div>
-  ${pl?`<p class="ins">${t('insFrom')} <b>${esc(pl.name)}</b></p>`:`<p class="warnbox">${t('insMissing')}</p>`}
+  <div class="insrow"><label for="ins-sel">${t('insLabel')}</label>${planSelect('ins-sel','ins',p)}<span class="src ${pl?'':'missing'}">${pl?(p.src==='manual'?t('srcManual'):t('srcDentrix')):t('srcNone')}</span></div>
+  ${pl?'':`<p class="warnbox">${t('insMissing')}</p>`}
   <p class="q">${t('what')}</p>
   <div class="addrow"><input type="text" id="code-in" list="dl-codes" autocomplete="off" placeholder="${esc(t('codePh'))}" aria-label="${esc(t('what'))}"><button type="button" class="btn sec" data-action="add-code">${t('add')}</button></div>
   <datalist id="dl-codes">${allCodes().map(c=>`<option value="${c.code} · ${esc(c[S.lang])}"></option>`).join('')}</datalist>
@@ -371,13 +379,18 @@ function patientPanel(){
   <div class="saverow"><span class="saved">${SAVED_AT===v.id?'✓ '+t('savedMsg'):''}</span><button type="button" class="btn big" data-action="save" ${v.codes.length?'':'disabled'}>${t('save')}</button></div>
  </div>`;
 }
+function planSelect(id,f,p,extra){return `<select id="${id}" data-f="${f}" ${p?`data-p="${p.id}"`:''} ${extra||''}><option value="">${t('insPick')}</option>${allPlans().map(x=>`<option value="${x.id}" ${p&&p.plan===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`;}
+function setPlan(p,k){p.plan=k||null;p.src=k?'manual':null;save();renderShell();toast(k?t('insSet',p.name,planInfo(k).name):t('saved'));}
+function renderDentistList(){const sel=S.sel;renderDentist();S.sel=sel;}
 function refreshPanel(focusId){$('#ppanel').innerHTML=patientPanel();if(focusId){const el=document.getElementById(focusId);if(el)el.focus();}}
 function curVisit(){return S.visits.find(x=>x.id===S.sel);}
 function addPatient(){
  const el=$('#np-in');const name=(el?el.value:'').trim();
  if(!name){toast(t('npNeed'));el&&el.focus();return;}
  let p=S.patients.find(x=>x.name.toLowerCase()===name.toLowerCase());
- if(!p){p={id:'p'+(S.nextPat++),name,plan:null};S.patients.push(p);}
+ const insIn=$('#np-ins');const k=insIn?insIn.value:'';
+ if(!p){p={id:'p'+(S.nextPat++),name,plan:k||null,src:k?'manual':null};S.patients.push(p);}
+ else if(!p.plan&&k){p.plan=k;p.src='manual';}
  let v=S.visits.find(x=>x.dentist===S.dentist&&x.date===S.date&&x.patient===p.id);
  if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,time:'',codes:[],saved:false};S.visits.push(v);}
  S.sel=v.id;ADDING=false;SAVED_AT=null;save();renderShell();renderDentist();toast(t('npAdded',p.name));
@@ -413,7 +426,7 @@ function renderSummary(){
  ${rows.map(r=>`<tr><td><b>${esc(r.d.name)}</b><br><button type="button" class="linkbtn" style="font-size:.84rem" data-action="toggle" data-d="${r.d.id}">${S.open[r.d.id]?t('hide'):t('details')}</button></td><td class="num">${r.vs.length}</td><td class="num"><b>${money(r.pay)}</b></td><td>${r.alerts?`<span class="badge bad">${r.alerts}</span>`:`<span class="badge done">0</span>`}</td></tr>
   ${S.open[r.d.id]?`<tr class="detail"><td colspan="4"><div class="tablewrap"><table class="inner"><tbody>${r.ev.map(([v,e])=>{const p=pat(v.patient);return `<tr><td class="mono">${esc(short(v.date))}</td><td>${esc(p.name)}</td><td class="mono" style="font-size:.82rem">${esc(v.codes.map(c=>c.code+(c.tooth?' #'+c.tooth:'')).join(', '))}</td><td>${esc(p.plan?planInfo(p.plan).name:'—')}</td><td class="num">${money(e.total)}</td></tr>`;}).join('')}</tbody></table></div></td></tr>`:''}`).join('')}
  </tbody><tfoot><tr><td>${t('total')}</td><td></td><td class="num">${money(total)}</td><td></td></tr></tfoot></table></div></section>
- <section class="panel"><div class="ph"><h2>${t('alertsTitle')}</h2></div><div class="pb">${alerts.length?`<ul class="alerts">${alerts.map(x=>`<li class="${BLOCKING.has(x.a)?'':'warn'}"><b>${esc(pat(x.v.patient).name)}</b> · ${esc(x.d.name)} · ${esc(short(x.v.date))}<br><span class="muted">${esc(alertMsg(x.a,x.e))}</span></li>`).join('')}</ul>`:`<p class="okline">${t('alertsNone')}</p>`}</div></section>
+ <section class="panel"><div class="ph"><h2>${t('alertsTitle')}</h2></div><div class="pb">${alerts.length?`<ul class="alerts">${alerts.map(x=>`<li class="${BLOCKING.has(x.a)?'':'warn'}"><b>${esc(pat(x.v.patient).name)}</b> · ${esc(x.d.name)} · ${esc(short(x.v.date))}<br><span class="muted">${esc(alertMsg(x.a,x.e))}</span>${x.a==='noIns'?`<div class="fix"><label for="sum-ins-${x.v.id}">${t('insLabel')}</label>${planSelect('sum-ins-'+x.v.id,'ins-sum',pat(x.v.patient))}</div>`:''}</li>`).join('')}</ul>`:`<p class="okline">${t('alertsNone')}</p>`}</div></section>
  </div>`;
 }
 
@@ -473,6 +486,8 @@ document.addEventListener('click',ev=>{
 document.addEventListener('change',ev=>{
  const el=ev.target,f=el.dataset.f;
  if(f==='dentist'){S.dentist=el.value;S.sel=null;SAVED_AT=null;save();renderDentist();}
+ else if(f==='ins'){setPlan(pat(el.dataset.p),el.value);refreshPanel(null);renderDentistList();}
+ else if(f==='ins-sum'){setPlan(pat(el.dataset.p),el.value);renderSummary();}
  else if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.codes[+el.dataset.i].tooth=s;else delete v.codes[+el.dataset.i].tooth;v.saved=false;save();}
  else if(f==='fee'){const v=el.value.trim();S.fees[el.dataset.k][el.dataset.col]=v===''?null:Math.max(0,+v);save();renderShell();toast(t('saved'));}
 });
