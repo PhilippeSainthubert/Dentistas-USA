@@ -4,394 +4,267 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: CRM shell. Dark sidebar, top bar with search and the main action, summary cards that double as filters, a record list, and a record side panel that opens on click. */
+/* Layout: three big screens behind three big tabs. Dentist: today's patients on the left, the selected patient on the right. Big targets, few words. */
 :root{
   --bg:#f4f6fa; --surface:#ffffff; --sunk:#eef2f7; --ink:#1b2433; --muted:#5c6b80; --line:#dfe5ee;
-  --nav:#1d2939; --nav-ink:#b9c5d4; --nav-hi:#ffffff; --nav-active:#2d3d53;
+  --nav:#1d2939; --nav-ink:#c9d3e0;
   --primary:#0f62d6; --primary-ink:#ffffff; --primary-soft:#e6effd;
+  --go:#14794b; --go-ink:#ffffff;
   --ok:#14794b; --ok-soft:#e0f3e8; --warn:#9a5800; --warn-soft:#fcefd9; --bad:#bf2f26; --bad-soft:#fce4e1;
-  --av1:#dbe7fd; --av1i:#1d4ed8; --av2:#d4f1ea; --av2i:#0f766e; --av3:#ebe3fd; --av3i:#6d28d9; --av4:#fbebd3; --av4i:#9a5800; --av5:#fde2e7; --av5i:#be123c; --av6:#e3e8ef; --av6i:#334155;
-  --scrim:rgba(15,23,35,.35);
   --font-ui:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --r:10px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0d1218; --surface:#151c26; --sunk:#1b2431; --ink:#e7ecf3; --muted:#9ba7b7; --line:#283343;
-  --nav:#0a0f15; --nav-ink:#93a1b4; --nav-hi:#ffffff; --nav-active:#1b2636;
+  --nav:#0a0f15; --nav-ink:#93a1b4;
   --primary:#7aa2ff; --primary-ink:#0a1020; --primary-soft:#1a2646;
+  --go:#4cc28a; --go-ink:#06140d;
   --ok:#5ccb97; --ok-soft:#12291f; --warn:#f0b45c; --warn-soft:#2d2213; --bad:#ff7e72; --bad-soft:#351a1a;
-  --av1:#1d2b4a; --av1i:#9db8ff; --av2:#123230; --av2i:#6fd6c4; --av3:#2a2145; --av3i:#c3a8ff; --av4:#33270f; --av4i:#f0b45c; --av5:#3a1a24; --av5i:#ff9db2; --av6:#232c38; --av6i:#b6c2d1;
-  --scrim:rgba(0,0,0,.55);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --bg:#0d1218; --surface:#151c26; --sunk:#1b2431; --ink:#e7ecf3; --muted:#9ba7b7; --line:#283343;
-  --nav:#0a0f15; --nav-ink:#93a1b4; --nav-hi:#ffffff; --nav-active:#1b2636;
+  --nav:#0a0f15; --nav-ink:#93a1b4;
   --primary:#7aa2ff; --primary-ink:#0a1020; --primary-soft:#1a2646;
+  --go:#4cc28a; --go-ink:#06140d;
   --ok:#5ccb97; --ok-soft:#12291f; --warn:#f0b45c; --warn-soft:#2d2213; --bad:#ff7e72; --bad-soft:#351a1a;
-  --av1:#1d2b4a; --av1i:#9db8ff; --av2:#123230; --av2i:#6fd6c4; --av3:#2a2145; --av3i:#c3a8ff; --av4:#33270f; --av4i:#f0b45c; --av5:#3a1a24; --av5i:#ff9db2; --av6:#232c38; --av6i:#b6c2d1;
-  --scrim:rgba(0,0,0,.55);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.45}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.45}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.mono,.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
-.num{text-align:right;white-space:nowrap}
-.muted{color:var(--muted)}
-.small{font-size:.8rem}
-h1,h2,h3{text-wrap:balance;margin:0}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance}
 p{margin:0}
-select,input[type=text],input[type=search],input[type=number]{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
-select:focus,input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.muted{color:var(--muted)}
+.wrap{max-width:1240px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+input[type=text],input[type=number],select{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
 
-/* shell */
-.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
-.side{background:var(--nav);color:var(--nav-ink);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:18px;padding-block:18px;padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:14px}
-.logo{display:flex;align-items:center;gap:10px;padding:2px 8px 8px}
-.logo svg{width:30px;height:30px;color:var(--nav-hi);flex:none}
-.logo b{display:block;color:var(--nav-hi);font-size:1rem}
-.logo span{font-size:.76rem}
-/* clinic logo (only in the Vercel build): the mark is taupe on transparent, so it sits on a white plate */
-.logo.brand{flex-direction:column;align-items:stretch;gap:8px;padding:0 2px 6px}
-.logo.brand .plate{background:#ffffff;border-radius:10px;padding:10px 12px;display:block}
-.logo.brand img{display:block;width:100%;height:auto}
-.logo.brand span[data-i18n]{padding-left:4px}
-@media (max-width:900px){.logo.brand{flex-direction:row;align-items:center;padding:0}.logo.brand .plate{padding:6px 10px}.logo.brand img{width:auto;height:26px}}
-.nav{display:flex;flex-direction:column;gap:2px}
-.navi{display:flex;align-items:center;gap:11px;border:0;background:none;color:var(--nav-ink);padding:9px 10px;border-radius:8px;font-weight:700;text-align:left;width:100%}
-.navi svg{width:19px;height:19px;flex:none}
-.navi:hover{background:var(--nav-active);color:var(--nav-hi)}
-.navi[aria-current="page"]{background:var(--nav-active);color:var(--nav-hi);box-shadow:inset 3px 0 0 var(--primary)}
-.navi .cnt{margin-left:auto;font-family:var(--font-mono);font-size:.72rem;background:var(--bad);color:#fff;border-radius:999px;padding:1px 7px}
-.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;font-size:.78rem;padding:0 8px}
-.side-foot .proto{color:var(--nav-hi);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.68rem}
-.side-foot button.link{border:0;background:none;padding:0;color:var(--nav-hi);text-decoration:underline;text-underline-offset:3px;text-align:left}
-.lang{display:inline-flex;border:1px solid var(--nav-active);border-radius:999px;padding:2px;align-self:flex-start}
-.lang button{border:0;background:none;color:var(--nav-ink);padding:3px 10px;border-radius:999px;font-weight:700;font-size:.75rem}
-.lang button[aria-pressed="true"]{background:var(--nav-hi);color:var(--nav)}
-.main{min-width:0;padding-block:20px 56px;padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px))}
-.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin-bottom:18px}
-.topbar h1{font-size:1.45rem}
-.topbar .sub{color:var(--muted);font-size:.9rem;margin-top:2px}
-.topbar .sub::first-letter{text-transform:uppercase}
-.tb-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.search{position:relative}
-.search svg{position:absolute;left:10px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:var(--muted)}
-.search input{padding-left:32px;width:240px;max-width:100%}
-.btn{border:0;background:var(--primary);color:var(--primary-ink);font-weight:700;padding:9px 16px;border-radius:8px;white-space:nowrap}
-.btn:hover{filter:brightness(1.05)}
+header.top{background:var(--nav);color:var(--nav-ink)}
+header.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding-block:12px}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo svg{width:30px;height:30px;color:#ffffff;flex:none}
+.logo b{display:block;color:#ffffff}
+.logo span{font-size:.78rem}
+.logo.brand .plate{background:#ffffff;border-radius:10px;padding:6px 10px;display:block}
+.logo.brand img{display:block;height:30px;width:auto}
+.tabs{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.tab{border:0;background:transparent;color:var(--nav-ink);font-weight:700;font-size:1.02rem;padding:10px 18px;border-radius:999px;display:flex;align-items:center;gap:8px}
+.tab:hover{color:#ffffff}
+.tab[aria-selected="true"]{background:#ffffff;color:var(--nav)}
+.tab .cnt{font-family:var(--font-mono);font-size:.74rem;background:var(--bad);color:#ffffff;border-radius:999px;padding:1px 7px}
+.lang{display:inline-flex;border:1px solid #3a4a60;border-radius:999px;padding:2px}
+.lang button{border:0;background:none;color:var(--nav-ink);padding:3px 10px;border-radius:999px;font-weight:700;font-size:.76rem}
+.lang button[aria-pressed="true"]{background:#ffffff;color:var(--nav)}
+.proto{font-size:.82rem;color:var(--muted);padding-block:10px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.proto b{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:2px 7px;border-radius:4px}
+.linkbtn{border:0;background:none;padding:0;color:var(--primary);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+main{padding-block:4px 56px}
+.btn{border:0;background:var(--primary);color:var(--primary-ink);font-weight:700;padding:11px 18px;border-radius:10px;white-space:nowrap}
+.btn.go{background:var(--go);color:var(--go-ink);font-size:1.1rem;padding:14px 22px}
 .btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
-.btn.sec:hover{border-color:var(--primary);color:var(--primary)}
-.btn.sm{padding:6px 12px;font-size:.86rem}
+.btn.sm{padding:7px 12px;font-size:.88rem}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.linkbtn{border:0;background:none;padding:0;color:var(--primary);font-weight:700}
-.linkbtn:hover{text-decoration:underline;text-underline-offset:3px}
-.danger{color:var(--bad)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.ph{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.ph h2{font-size:1.1rem}
+.pb{padding:16px 18px;display:flex;flex-direction:column;gap:16px}
 
-@media (max-width:900px){
-  .app{grid-template-columns:minmax(0,1fr)}
-  .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
-  .logo{padding:0}
-  .nav{flex-direction:row;overflow-x:auto;flex:1 1 100%;order:3;scrollbar-width:none}
-  .navi{width:auto;white-space:nowrap}
-  .side-foot{margin:0 0 0 auto;flex-direction:row;align-items:center;padding:0}
-  .side-foot .proto,.side-foot .note{display:none}
-  .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-}
-
-/* summary cards */
-.notice{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:.84rem;color:var(--muted);background:var(--warn-soft);border-radius:8px;padding:8px 12px;margin-bottom:16px}
-.notice b{color:var(--warn);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
-@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;text-align:left;display:flex;flex-direction:column;gap:4px;min-width:0}
-button.kpi:hover{border-color:var(--primary)}
-.kpi[aria-pressed="true"]{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
-.kpi .k{font-size:.78rem;font-weight:700;color:var(--muted)}
-.kpi .v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.6rem;font-weight:600;line-height:1.15}
-.kpi .h{font-size:.76rem;color:var(--muted)}
-.kpi.bad .v{color:var(--bad)}
-.kpi.warn .v{color:var(--warn)}
-.kpi.good .v{color:var(--ok)}
-
-/* record list */
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-width:0}
-.panel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;padding:12px 16px;border-bottom:1px solid var(--line)}
-.views{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
-.vtab{border:0;background:none;padding:7px 12px;border-radius:7px;font-weight:700;color:var(--muted);white-space:nowrap}
-.vtab:hover{background:var(--sunk)}
-.vtab[aria-selected="true"]{background:var(--primary-soft);color:var(--primary)}
-.vtab .n{font-family:var(--font-mono);font-size:.74rem;margin-left:5px;opacity:.85}
-.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.days{display:flex;gap:4px;flex-wrap:wrap}
-.day{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.84rem;font-weight:700;color:var(--muted)}
+/* dentist */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:14px}
+.bar label{font-weight:700;display:flex;align-items:center;gap:8px}
+.bar select{font-size:1.02rem;font-weight:700;min-width:220px}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.day{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:700;color:var(--muted)}
 .day::first-letter{text-transform:uppercase}
 .day[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
-.tablewrap{overflow-x:auto}
-table.list{width:100%;min-width:780px;border-collapse:collapse;font-size:.92rem}
-.list th{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--sunk)}
-.list th.num{text-align:right}
-.list td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
-.list tbody tr:last-child td{border-bottom:0}
-.list tbody tr.rec{cursor:pointer}
-.list tbody tr.rec:hover td{background:var(--sunk)}
-.list tbody tr.rec.cur td{background:var(--primary-soft)}
-.who{display:flex;align-items:center;gap:10px;min-width:0}
-.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.8rem;flex:none}
-.av.lg{width:46px;height:46px;font-size:1rem}
-.who .nm{font-weight:700;color:var(--primary)}
-.who .meta{font-size:.78rem;color:var(--muted)}
-.tags{display:flex;flex-wrap:wrap;gap:4px}
-.tag{font-size:.78rem;padding:2px 8px;border-radius:5px;background:var(--sunk);white-space:nowrap}
-.tag.np{color:var(--muted)}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
-.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
-.pill.ok{background:var(--ok-soft);color:var(--ok)}
-.pill.bad{background:var(--bad-soft);color:var(--bad)}
-.pill.warn{background:var(--warn-soft);color:var(--warn)}
-.pill.none{background:var(--sunk);color:var(--muted)}
-.plan{font-size:.84rem}
-.plan.missing{color:var(--bad);font-weight:700}
-.empty{padding:36px 16px;text-align:center;color:var(--muted)}
-.empty .btn{margin-top:12px}
-.list tfoot td{font-weight:700;background:var(--sunk);border-top:1px solid var(--line)}
-
-/* record panel */
-.scrim{position:fixed;inset:0;background:var(--scrim);z-index:20}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(470px,100%);background:var(--surface);z-index:21;display:flex;flex-direction:column;box-shadow:-12px 0 32px rgba(10,20,35,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
-.dh{display:flex;align-items:flex-start;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line)}
-.dh .t{flex:1;min-width:0}
-.dh h2{font-size:1.2rem}
-.dh .meta{color:var(--muted);font-size:.86rem;margin-top:2px}
-.dh .meta::first-letter{text-transform:uppercase}
-.xbtn{border:0;background:none;color:var(--muted);width:34px;height:34px;border-radius:8px;font-size:1.3rem;line-height:1;flex:none}
-.xbtn:hover{background:var(--sunk);color:var(--ink)}
-.db{flex:1;overflow-y:auto;padding:4px 20px 20px}
-.sec{padding:16px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
-.sec:last-child{border-bottom:0}
-.sec h3{font-size:.76rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.field{display:flex;flex-direction:column;gap:5px}
-.field label{font-size:.84rem;font-weight:700}
-.field select,.field input{width:100%}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.help{font-size:.8rem;color:var(--muted)}
-.tlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.tlist li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
-.tlist li .nm{flex:1;min-width:0;font-weight:700;font-size:.9rem}
-.tlist li.np .nm{color:var(--muted);font-weight:400}
-.tlist li .tooth{width:62px;padding:5px 7px;font-family:var(--font-mono);font-size:.84rem;text-align:center}
-.tlist li .price{font-family:var(--font-mono);font-size:.84rem;color:var(--muted);min-width:64px;text-align:right}
-.qty{display:inline-flex;align-items:center;gap:4px}
-.qty button{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:26px;height:26px;line-height:1;padding:0}
-.qty b{font-family:var(--font-mono);min-width:16px;text-align:center}
-.rm{border:0;background:none;color:var(--muted);width:28px;height:28px;border-radius:6px;font-size:1.05rem;line-height:1;flex:none}
+.dgrid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.dgrid{grid-template-columns:minmax(0,1fr)}}
+.plist{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:6px}
+.pbtn{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px}
+.pbtn:hover{border-color:var(--primary)}
+.pbtn[aria-current="true"]{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary);background:var(--primary-soft)}
+.pbtn .time{font-family:var(--font-mono);font-size:.84rem;color:var(--muted);width:44px;flex:none}
+.pbtn .nm{flex:1;min-width:0}
+.pbtn .nm b{display:block}
+.pbtn .nm span{font-size:.8rem;color:var(--muted)}
+.badge{font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.badge.done{background:var(--ok-soft);color:var(--ok)}
+.badge.todo{background:var(--sunk);color:var(--muted)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.pt{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.pt h2{font-size:1.5rem}
+.ins{font-size:.92rem}
+.q{font-size:1.05rem;font-weight:700}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;font-size:1.05rem}
+.quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.quick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.qb{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:1px;min-height:64px}
+.qb:hover{border-color:var(--primary);background:var(--primary-soft)}
+.qb .c{font-family:var(--font-mono);font-weight:600;font-size:.86rem;color:var(--primary)}
+.qb .n{font-size:.86rem}
+.done-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.done-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.done-list .c{font-family:var(--font-mono);font-weight:600;width:60px}
+.done-list .n{flex:1;min-width:140px}
+.done-list input{width:70px;padding:6px 8px;font-family:var(--font-mono);text-align:center}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:6px;font-weight:700;font-size:.84rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink)}
+.rm{border:0;background:none;color:var(--muted);width:32px;height:32px;border-radius:8px;font-size:1.15rem;line-height:1}
 .rm:hover{background:var(--bad-soft);color:var(--bad)}
-select.add{border:1px dashed var(--primary);color:var(--primary);font-weight:700;background:var(--surface)}
-.total{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.total .v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.9rem;font-weight:600}
-.bd{list-style:none;margin:0;padding:10px 12px;background:var(--sunk);border-radius:8px;display:flex;flex-direction:column;gap:4px;font-size:.84rem}
-.bd li{display:flex;justify-content:space-between;gap:10px}
-.bd li span:last-child{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
-.combo{font-size:.82rem;color:var(--ok);font-weight:700}
-.alist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.alist li{font-size:.86rem;padding:8px 10px;border-radius:8px;border-left:3px solid var(--bad);background:var(--bad-soft)}
-.alist li.warn{border-left-color:var(--warn);background:var(--warn-soft)}
-.df{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
-.vlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.vlist button{width:100%;display:flex;justify-content:space-between;gap:10px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 12px}
-.vlist button:hover{border-color:var(--primary)}
-.vlist .d::first-letter{text-transform:uppercase}
+.saverow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.saved{color:var(--ok);font-weight:700}
+.empty{color:var(--muted);padding:6px 0}
+.warnbox{background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:.9rem}
 
-/* payroll + fees */
-table.plain{width:100%;border-collapse:collapse;font-size:.9rem}
-.plain th{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--sunk)}
+/* summary */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:640px){.kpis{grid-template-columns:minmax(0,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.kpi span{display:block;font-size:.84rem;font-weight:700;color:var(--muted)}
+.kpi b{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.8rem}
+.kpi.bad b{color:var(--bad)}
+.kpi.good b{color:var(--ok)}
+.tablewrap{overflow-x:auto}
+table.plain{width:100%;border-collapse:collapse;font-size:.95rem}
+.plain th{font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
 .plain th.num{text-align:right}
-.plain td{padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+.plain td{padding:11px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
 .plain tfoot td{font-weight:700;background:var(--sunk);border-bottom:0}
 .plain .detail>td{background:var(--sunk)}
-.inner{width:100%;border-collapse:collapse;font-size:.86rem}
+.inner{width:100%;border-collapse:collapse;font-size:.88rem}
 .inner td{padding:6px 8px;border-bottom:1px solid var(--line)}
-.alerts{list-style:none;margin:0;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
-.alerts li{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--bad)}
+.alerts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.alerts li{padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--bad);font-size:.92rem}
 .alerts li.warn{border-left-color:var(--warn)}
-.alerts .what{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 280px}
-.okline{color:var(--ok);font-weight:700;padding:16px}
-.stack{display:flex;flex-direction:column;gap:18px}
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,330px);gap:18px;align-items:start}
-@media (max-width:1180px){.split{grid-template-columns:minmax(0,1fr)}}
-.fees input{width:84px;text-align:right;font-family:var(--font-mono);padding:5px 7px}
-.fees td{padding:5px 10px}
-.fees .grp td{background:var(--sunk);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:7px 16px}
-.rules{list-style:none;margin:0;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.rules li{display:flex;flex-direction:column;gap:5px;font-size:.88rem;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.rules li:last-child{border-bottom:0;padding-bottom:0}
-.rtag{align-self:flex-start;font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--sunk);color:var(--muted)}
-.rtag.ded{background:var(--warn-soft);color:var(--warn)}
-.seg{display:inline-flex;background:var(--sunk);border-radius:8px;padding:3px;gap:2px;align-self:flex-start}
-.seg button{border:0;background:none;padding:6px 12px;border-radius:6px;font-weight:700;font-size:.88rem;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.okline{color:var(--ok);font-weight:700}
+.stack{display:flex;flex-direction:column;gap:16px}
 
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:8px;font-weight:700;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:calc(100% - 32px)}
+/* fees */
+.fees input{width:86px;text-align:right;font-family:var(--font-mono);padding:6px 8px;border-radius:8px}
+.fees td{padding:6px 10px}
+.fees td.code{font-family:var(--font-mono);font-weight:600;white-space:nowrap}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools input[type=number]{width:80px}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;align-items:end;padding:12px;background:var(--sunk);border-radius:10px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:700;color:var(--muted)}
+.form input,.form select{width:100%}
+.combos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.combos li{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.combos .codes{font-family:var(--font-mono)}
+.hist{font-size:.86rem;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:10px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:calc(100% - 32px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 
-<div class="app">
-  <aside class="side">
+<header class="top">
+  <div class="wrap">
     <!--BRAND-->
     <div class="logo">
       <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10.5 4C6.9 4 5 6.9 5 10.2c0 2.8 1.1 4.7 1.9 7.2.8 2.6 1.1 5.8 2.2 8.9.6 1.6 2.4 1.6 2.9.1.8-2.4 1.3-6.1 4-6.1s3.2 3.7 4 6.1c.5 1.5 2.3 1.5 2.9-.1 1.1-3.1 1.4-6.3 2.2-8.9.8-2.5 1.9-4.4 1.9-7.2C27 6.9 25.1 4 21.5 4c-2.1 0-3.2 1-5.5 1S12.6 4 10.5 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       <div><b data-i18n="appName"></b><span data-i18n="appSub"></span></div>
     </div>
     <!--/BRAND-->
-    <nav class="nav" id="nav" aria-label="Menu"></nav>
-    <div class="side-foot">
-      <span class="proto" data-i18n="proto"></span>
-      <span class="note" data-i18n="notice"></span>
-      <button type="button" class="link" data-action="reset" data-i18n="reset"></button>
-      <div class="lang" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-action="lang" data-lang="es">ES</button><button type="button" id="lang-en" data-action="lang" data-lang="en">EN</button></div>
-    </div>
-  </aside>
-  <main class="main" id="main"></main>
-</div>
-<div id="drawer-root"></div>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+    <div class="lang" role="group" aria-label="Language / Idioma"><button type="button" id="lang-en" data-action="lang" data-lang="en">EN</button><button type="button" id="lang-es" data-action="lang" data-lang="es">ES</button></div>
+  </div>
+</header>
+<div class="wrap proto"><b data-i18n="proto"></b><span data-i18n="notice"></span><button type="button" class="linkbtn" data-action="reset" data-i18n="reset"></button></div>
+<main class="wrap" id="main"></main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="engine.js"></script>
 <script>
 (function(){
 "use strict";
-const LS_KEY='pd-delaware-v6';
+const LS_KEY='pd-delaware-v7';
 const DAYS=['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'];
 const TODAY='2026-10-21';
-const PAGES=['today','patients','payroll','fees'];
+const PAGES=['dentist','summary','fees'];
+// ADA codes mapped onto the clinic's fee table. stage: the same code is paid twice (prep / delivery).
+const CODES=[
+ ['D0120','periodic','Periodic exam','Examen periódico'],['D0150','comp','Comprehensive exam','Examen completo'],['D0140','limited','Limited exam','Examen limitado'],['D0145','under3','Exam, child under 3','Examen menor de 3 años'],['D0180','compperio','Comp. periodontal exam','Examen periodontal'],
+ ['D0274','btw4','4 bitewings','4 aletas (BW)'],['D0272','btw2','2 bitewings','2 aletas (BW)'],['D0270','btw1','1 bitewing','1 aleta (BW)'],['D0220','pa','PA, first','PA, primera'],['D0230','paadd','PA, each additional','PA adicional'],['D0330','pan','Panoramic','Panorámica'],['D0210','fms','Full mouth series','Serie completa (FMX)'],['D0367','cbct','CBCT','CBCT'],
+ ['D2391','post1','Posterior composite, 1 surf.','Composite posterior, 1 sup.'],['D2392','post2','Posterior composite, 2 surf.','Composite posterior, 2 sup.'],['D2393','post3','Posterior composite, 3 surf.','Composite posterior, 3 sup.'],['D2394','post4','Posterior composite, 4+ surf.','Composite posterior, 4+ sup.'],
+ ['D2330','ant1','Anterior composite, 1 surf.','Composite anterior, 1 sup.'],['D2331','ant2','Anterior composite, 2 surf.','Composite anterior, 2 sup.'],['D2332','ant3','Anterior composite, 3 surf.','Composite anterior, 3 sup.'],['D2335','ant4','Anterior composite, 4+ surf.','Composite anterior, 4+ sup.'],
+ ['D2950','core','Core build-up','Core build-up'],['D2740','crown','Porcelain crown','Corona de porcelana',1],['D2920','rec','Recement crown','Recementar corona'],['D6065','implant','Implant crown','Corona sobre implante',1],
+ ['D7140','extsimple','Extraction','Extracción'],['D7210','extsurg','Surgical extraction','Extracción quirúrgica'],['D7111','extbaby','Extraction, baby tooth','Extracción diente de leche'],
+ ['D3310','endoant','Root canal, anterior','Endodoncia anterior'],['D3320','endopre','Root canal, premolar','Endodoncia premolar'],['D3330','endomolar','Root canal, molar','Endodoncia molar'],
+ ['D1354','sdf','Caries arrest (SDF)','Detención de caries (SDF)'],['D9951','occadj','Occlusal adjustment','Ajuste oclusal'],['D9944','nightguard','Night guard','Férula de descarga'],['D9941','occguard','Mouthguard','Protector bucal'],
+ ['D1110','prophy','Prophylaxis, adult','Profilaxis adulto'],['D1120','prophy','Prophylaxis, child','Profilaxis niño'],['D1206','fluoride','Fluoride varnish','Barniz de flúor'],['D0171','followup','Follow-up visit','Revisión'],
+ ['D4341','srp','Scaling & root planing','Raspado radicular (SRP)'],
+].map(([code,item,en,es,stage])=>({code,item,en,es,stage:!!stage}));
+const QUICK=['D0120','D0150','D0274','D0220','D0330','D1110','D2392','D2740'];
+const TOOTH_ITEMS=new Set(['post1','post2','post3','post4','ant1','ant2','ant3','ant4','core','crown','rec','implant','extsimple','extsurg','extbaby','endoant','endopre','endomolar']);
 const BLOCKING=new Set(['noIns','noPrice','notInTable']);
-const DUP_KEYS=new Set(['comp','periodic','pan','fms','btw']);
-const OPTS=[['exam',['comp','periodic','limited','under3','compperio']],['xray',['btw1','btw2','btw3','btw4','pa','pan','fms','cbct']],['ant',['ant1','ant2','ant3','ant4']],['post',['post1','post2','post3','post4']],['crown',['crownprep','core','crowndel','rec','nightguard']],['implant',['implimp','impldel']],['ext',['extsimple','extsurg','extbaby']],['endo',['endoant','endopre','endomolar']],['misc',['sdf','occadj','occguard']],['nopay',['prophy','fluoride','followup']],['notable',['srp']]];
-const TOOTH=new Set(['ant1','ant2','ant3','ant4','post1','post2','post3','post4','crownprep','core','crowndel','implimp','impldel','extsimple','extsurg','extbaby','endoant','endopre','endomolar']);
-const BUNDLE_IDS=new Set(PD.BUNDLES.map(b=>b.id));
-const COMBO_KEYS=new Set(['comp','periodic','limited','pan','btw','pa','fms','rec']);
-const ICON={
- today:'<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
- patients:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18.6 14.6c1.6.9 2.6 2.7 2.9 5.4"/>',
- payroll:'<rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M3 10.5h18M15.5 15.5h2.5"/>',
- fees:'<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8.5 8.5-9 9-8.5-8.5z"/><circle cx="8.5" cy="8.5" r="1.6"/>',
- search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'
-};
-const svg=(k,cls)=>`<svg ${cls?`class="${cls}"`:''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+const PLAN_FOR_COL={medicaid:'mc_adult',delta:'delta',guardian:'guardian',private:'noins',va:'va',nin:'other'};
 
 const T={
-es:{
- appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Precios y combos de vuestra tabla (fees.xlsx). Pacientes y dentistas inventados.',reset:'Restablecer ejemplo',resetDone:'Datos de ejemplo restablecidos',locale:'es-ES',
- nav_today:'Visitas',nav_patients:'Pacientes',nav_payroll:'Liquidación',nav_fees:'Precios',
- title_today:'Visitas del día',sub_today:(d,n)=>`${d} · ${n} ${n===1?'visita':'visitas'}`,
- title_patients:'Pacientes',sub_patients:(n,m)=>`${n} pacientes · ${m} sin seguro asignado`,
- title_payroll:'Liquidación de la semana',sub_payroll:'Del lunes 19 al viernes 23 de octubre de 2026',
- title_fees:'Precios',sub_fees:'Lo que cobra el dentista por tratamiento y seguro (vuestro fees.xlsx)',
- newVisit:'+ Registrar visita',search:'Buscar paciente…',
- allDentists:'Todos los dentistas',
- kpi_visits:'Visitas',kpi_noIns:'Falta seguro',kpi_review:'Para revisar',kpi_pay:'A pagar a dentistas',
- kh_visits:'Ver todas',kh_noIns:'Las completa recepción',kh_review:'Sin precio o posibles duplicados',kh_pay:'Calculado con vuestra tabla',
- view_all:'Todas',view_noIns:'Falta seguro',view_review:'Para revisar',view_ok:'Listas',
- col_patient:'Paciente',col_treat:'Tratamientos',col_plan:'Seguro',col_amount:'Importe',col_status:'Estado',col_dentist:'Dentista',
- s_ok:'Lista',s_noIns:'Falta seguro',s_review:'Sin precio',s_warn:'Revisar',s_empty:'Sin tratamientos',
- emptyView:'No hay visitas en esta vista.',emptyDay:'Todavía no hay visitas este día.',total:'Total',
- d_new:'Nueva visita',d_patient:'Paciente',d_patientPh:'Apellido, Nombre',d_dentist:'Dentista',d_day:'Día',
- d_plan:'Seguro',d_planPending:'Sin asignar (lo pone recepción)',d_tariff:c=>`Se paga con la tarifa «${c}» de vuestra tabla.`,d_planHelp:'Si no lo sabes, déjalo vacío: recepción lo pondrá.',
- d_treat:'Tratamientos',d_add:'+ Añadir tratamiento',d_noTreat:'Elige en el desplegable lo que le hiciste.',d_tooth:'Diente',d_toothPh:'nº',
- d_amount:'Importe para el dentista',d_inCombo:'en el combo',d_noAmount:'Falta el seguro para calcularlo.',d_combo:n=>`Combo aplicado: ${n}`,d_alerts:'Avisos',
- d_save:'Guardar visita',d_done:'Listo',d_delete:'Quitar visita',d_close:'Cerrar',d_needName:'Escribe el nombre del paciente.',d_needTreat:'Añade al menos un tratamiento.',
- d_visits:'Visitas de la semana',d_noVisits:'Sin visitas esta semana.',d_openVisit:'Abrir',
- saved:'Guardado',created:n=>`Visita de ${n} guardada`,deleted:'Visita quitada',badTooth:'Diente no válido: usa 1-32 o A-T.',less:'Una menos',more:'Una más',remove:'Quitar',
- col_visits:'Visitas',col_last:'Última visita',col_dentists:'Dentistas',view_pAll:'Todos',view_pNoIns:'Sin seguro',
- kpi_total:'Total a pagar',kpi_approved:'Aprobados',kpi_block:'Por resolver',
- col_patients:'Pacientes',col_n:'Tratamientos',col_pay:'A pagar',col_alerts:'Avisos',
- approve:'Aprobar',approved:'Aprobado',undo:'Deshacer',resolveFirst:n=>n===1?'Falta resolver 1':`Faltan resolver ${n}`,details:'Ver detalle',hide:'Ocultar',
- alertsTitle:'Para revisar antes de pagar',alertsNone:'Nada pendiente. Todo cuadra.',open:'Abrir',keep:'Es correcto',
- a_noIns:'Falta el seguro.',a_noPrice:(l,c)=>`La tabla no tiene precio con ${c} para: ${l}.`,a_notInTable:l=>`No está en vuestra tabla: ${l}. Hay que decidir cuánto se paga.`,
- a_twoPrices:'Corona sobre implante: la tabla tiene dos precios (508,40 / 406,40). Se usa el elegido en Precios.',a_dup:'Ya se le hizo lo mismo esta semana.',
- feesTitle:'Vuestra tabla de precios',feesIntro:'Se puede editar aquí. Una celda vacía significa que no hay precio.',colProc:'Tratamiento',rulesTitle:'Reglas de pago',
- implantRule:'Corona sobre implante (Medicaid, Private promo y Not in network)',tagDeduced:'Deducida de vuestra lista · por confirmar',tagConfirm:'Por confirmar',tagTable:'De vuestra tabla',
- rules:[
-  ['Medicaid (Adult MC o Child MC) se paga con la columna Medicaid, aunque la aseguradora sea UC o Amerihealth.','ded'],
-  ['Sin seguro se paga con Private promo. Los seguros fuera de red (UNUM, Amerihealth sin Medicaid…) van a Not in network.','tab'],
-  ['Examen + radiografías: se aplica el combo más completo que encaja y lo que sobra se cobra suelto.','ded'],
-  ['Core build-up y preparación de corona en el mismo diente: precio combinado.','tab'],
-  ['La corona se paga dos veces: en la preparación (impresión) y en la entrega.','tab'],
-  ['Profilaxis, flúor y revisión de seguimiento no se pagan al dentista.','ded'],
- ],
-},
-en:{
- appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Fees and combos from your fee table (fees.xlsx). Patients and dentists are made up.',reset:'Reset sample data',resetDone:'Sample data restored',locale:'en-US',
- nav_today:'Visits',nav_patients:'Patients',nav_payroll:'Payroll',nav_fees:'Fees',
- title_today:'Daily visits',sub_today:(d,n)=>`${d} · ${n} ${n===1?'visit':'visits'}`,
- title_patients:'Patients',sub_patients:(n,m)=>`${n} patients · ${m} without insurance`,
- title_payroll:'Weekly payroll',sub_payroll:'Monday October 19 to Friday October 23, 2026',
- title_fees:'Fees',sub_fees:'What the dentist earns per treatment and insurance (your fees.xlsx)',
- newVisit:'+ Log visit',search:'Search patient…',
- allDentists:'All dentists',
- kpi_visits:'Visits',kpi_noIns:'Missing insurance',kpi_review:'To review',kpi_pay:'To pay dentists',
- kh_visits:'Show all',kh_noIns:'Front desk completes these',kh_review:'No fee or possible duplicates',kh_pay:'Calculated from your fee table',
- view_all:'All',view_noIns:'Missing insurance',view_review:'To review',view_ok:'Ready',
- col_patient:'Patient',col_treat:'Treatments',col_plan:'Insurance',col_amount:'Amount',col_status:'Status',col_dentist:'Dentist',
- s_ok:'Ready',s_noIns:'Missing insurance',s_review:'No fee',s_warn:'Review',s_empty:'No treatments',
- emptyView:'No visits in this view.',emptyDay:'No visits logged for this day yet.',total:'Total',
- d_new:'New visit',d_patient:'Patient',d_patientPh:'Last, First',d_dentist:'Dentist',d_day:'Day',
- d_plan:'Insurance',d_planPending:'Not set (front desk adds it)',d_tariff:c=>`Paid from the “${c}” column of your fee table.`,d_planHelp:'If you don’t know it, leave it empty: the front desk will add it.',
- d_treat:'Treatments',d_add:'+ Add treatment',d_noTreat:'Pick what you did from the dropdown.',d_tooth:'Tooth',d_toothPh:'#',
- d_amount:'Amount for the dentist',d_inCombo:'in the combo',d_noAmount:'Insurance is needed to calculate it.',d_combo:n=>`Combo applied: ${n}`,d_alerts:'Alerts',
- d_save:'Save visit',d_done:'Done',d_delete:'Remove visit',d_close:'Close',d_needName:'Enter the patient name.',d_needTreat:'Add at least one treatment.',
- d_visits:'Visits this week',d_noVisits:'No visits this week.',d_openVisit:'Open',
- saved:'Saved',created:n=>`Visit for ${n} saved`,deleted:'Visit removed',badTooth:'Invalid tooth: use 1-32 or A-T.',less:'One less',more:'One more',remove:'Remove',
- col_visits:'Visits',col_last:'Last visit',col_dentists:'Dentists',view_pAll:'All',view_pNoIns:'No insurance',
- kpi_total:'Total to pay',kpi_approved:'Approved',kpi_block:'To resolve',
- col_patients:'Patients',col_n:'Treatments',col_pay:'To pay',col_alerts:'Alerts',
- approve:'Approve',approved:'Approved',undo:'Undo',resolveFirst:n=>`${n} to resolve`,details:'Show detail',hide:'Hide',
- alertsTitle:'Review before paying',alertsNone:'Nothing pending. Everything checks out.',open:'Open',keep:'It’s correct',
- a_noIns:'Insurance missing.',a_noPrice:(l,c)=>`The fee table has no ${c} fee for: ${l}.`,a_notInTable:l=>`Not in your fee table: ${l}. Someone has to decide what it pays.`,
- a_twoPrices:'Implant crown: the table has two prices (508.40 / 406.40). The one chosen under Fees is used.',a_dup:'Same treatment already logged this week.',
- feesTitle:'Your fee table',feesIntro:'It can be edited here. An empty cell means there is no fee.',colProc:'Treatment',rulesTitle:'Pay rules',
- implantRule:'Implant crown (Medicaid, Private promo and Not in network)',tagDeduced:'Inferred from your list · to confirm',tagConfirm:'To confirm',tagTable:'From your fee table',
- rules:[
-  ['Medicaid (Adult MC or Child MC) is paid from the Medicaid column, even when the carrier is UC or Amerihealth.','ded'],
-  ['No insurance is paid from Private promo. Out-of-network plans (UNUM, non-Medicaid Amerihealth…) use Not in network.','tab'],
-  ['Exam + x-rays: the most complete combo that fits is applied and the rest is billed loose.','ded'],
-  ['Core build-up and crown prep on the same tooth: combined fee.','tab'],
-  ['Crowns are paid twice: at prep (impression) and at delivery.','tab'],
-  ['Prophylaxis, fluoride and follow-up visits are not paid to the dentist.','ded'],
- ],
-}};
+en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Fees from your fee table. Patients, dentists and the Dentrix link are simulated.',reset:'Reset sample data',resetDone:'Sample data restored',locale:'en-US',
+ tab_dentist:'My patients',tab_summary:'Summary',tab_fees:'Fees',
+ iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',walkin:'+ Patient without appointment',walkinPh:'Patient without appointment: search Dentrix…',
+ done:'Done',todo:'To do',noInsBadge:'No insurance',
+ pick:'Pick a patient on the left.',insFrom:'Insurance (from Dentrix):',insMissing:'Dentrix has no insurance for this patient. Javier will see it in the summary.',
+ what:'What did you do?',codePh:'Type a code or a name, e.g. D0120 or periodic',add:'Add',common:'Most used',nothing:'Nothing added yet. Tap a button or type a code.',
+ tooth:'Tooth',prep:'Prep',seat:'Delivery',remove:'Remove',save:'Save',savedMsg:'Saved',savedFor:n=>`Saved for ${n}`,unknownCode:'That code is not in the list. Ask Javier to add it under Fees.',
+ sumTitle:'Pay period summary',period:'Pay period: Monday Oct 12 to Friday Oct 23, 2026',k_total:'To pay dentists',k_pat:'Patients',k_alerts:'Alerts',
+ colDentist:'Dentist',colDentists:'Dentists',colPatients:'Patients',colTotal:'To pay',colAlerts:'Alerts',details:'Details',hide:'Hide',total:'Total',
+ alertsTitle:'Alerts',alertsNone:'Nothing pending.',exportAdp:'Export for ADP',copied:'Copied for ADP: paste it into your ADP sheet',
+ a_noIns:'Dentrix has no insurance for this patient.',a_noPrice:(l,c)=>`No fee in the table with ${c} for: ${l}.`,a_notInTable:l=>`Not in the fee table: ${l}.`,a_twoPrices:'Implant crown has two prices (508.40 / 406.40); using the one set under Fees.',a_empty:'Appointment without treatments.',
+ feesTitle:'Fee table',feesIntro:'What the dentist earns per code and insurance (your fees.xlsx). Edit any cell; it applies right away.',code:'Code',treatment:'Treatment',
+ addCode:'+ Add code',addPlan:'+ Add insurance',raise:'Raise all fees by',raiseBtn:'Apply',raised:p=>`All fees raised ${p}%`,
+ f_code:'Code',f_name:'Name',f_save:'Save',f_cancel:'Cancel',planName:'Insurance name',planCol:'Pays like',codeAdded:c=>`${c} added`,planAdded:n=>`${n} added`,badCode:'Enter a new code like D1234 and a name',
+ insList:'Insurance plans: ',combosTitle:'Combos from your table',combosIntro:'When these codes come in the same visit, the combo price is used.',histTitle:'Price changes',noHist:'No changes yet.',implantRule:'Implant crown price',saved:'Saved'},
+es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Precios de vuestra tabla. Pacientes, dentistas y la conexión con Dentrix son simulados.',reset:'Restablecer ejemplo',resetDone:'Datos de ejemplo restablecidos',locale:'es-ES',
+ tab_dentist:'Mis pacientes',tab_summary:'Resumen',tab_fees:'Precios',
+ iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',walkin:'+ Paciente sin cita',walkinPh:'Paciente sin cita: buscar en Dentrix…',
+ done:'Hecho',todo:'Pendiente',noInsBadge:'Sin seguro',
+ pick:'Elige un paciente a la izquierda.',insFrom:'Seguro (de Dentrix):',insMissing:'Dentrix no tiene seguro para este paciente. Javier lo verá en el resumen.',
+ what:'¿Qué le hiciste?',codePh:'Escribe un código o un nombre, p. ej. D0120 o periódico',add:'Añadir',common:'Los más usados',nothing:'Todavía nada. Pulsa un botón o escribe un código.',
+ tooth:'Diente',prep:'Preparación',seat:'Entrega',remove:'Quitar',save:'Guardar',savedMsg:'Guardado',savedFor:n=>`Guardado para ${n}`,unknownCode:'Ese código no está en la lista. Pídele a Javier que lo añada en Precios.',
+ sumTitle:'Resumen de la quincena',period:'Quincena del lunes 12 al viernes 23 de octubre de 2026',k_total:'A pagar a dentistas',k_pat:'Pacientes',k_alerts:'Avisos',
+ colDentist:'Dentista',colDentists:'Dentistas',colPatients:'Pacientes',colTotal:'A pagar',colAlerts:'Avisos',details:'Ver detalle',hide:'Ocultar',total:'Total',
+ alertsTitle:'Avisos',alertsNone:'Nada pendiente.',exportAdp:'Exportar para ADP',copied:'Copiado para ADP: pégalo en tu hoja de ADP',
+ a_noIns:'Dentrix no tiene seguro para este paciente.',a_noPrice:(l,c)=>`La tabla no tiene precio con ${c} para: ${l}.`,a_notInTable:l=>`No está en la tabla: ${l}.`,a_twoPrices:'Corona sobre implante con dos precios (508,40 / 406,40); se usa el elegido en Precios.',a_empty:'Cita sin tratamientos.',
+ feesTitle:'Tabla de precios',feesIntro:'Lo que cobra el dentista por código y seguro (vuestro fees.xlsx). Cambia cualquier celda: se aplica al momento.',code:'Código',treatment:'Tratamiento',
+ addCode:'+ Añadir código',addPlan:'+ Añadir seguro',raise:'Subir todos los precios un',raiseBtn:'Aplicar',raised:p=>`Precios subidos un ${p} %`,
+ f_code:'Código',f_name:'Nombre',f_save:'Guardar',f_cancel:'Cancelar',planName:'Nombre del seguro',planCol:'Paga como',codeAdded:c=>`${c} añadido`,planAdded:n=>`${n} añadido`,badCode:'Pon un código nuevo tipo D1234 y un nombre',
+ insList:'Seguros: ',combosTitle:'Combos de vuestra tabla',combosIntro:'Si estos códigos llegan en la misma visita, se usa el precio del combo.',histTitle:'Cambios de precios',noHist:'Todavía no hay cambios.',implantRule:'Precio de la corona sobre implante',saved:'Guardado'}};
 
-function toDropdown(x){if(x.k==='fill')return {k:PD.fillId(x.tooth,x.surf),tooth:x.tooth};const o={k:x.k};if(x.n)o.n=x.n;if(x.tooth)o.tooth=x.tooth;return o;}
 function seed(){
  const dentists=[{id:'d1',name:'Laura Méndez'},{id:'d2',name:'Kevin Park'},{id:'d3',name:'Aisha Rahman'},{id:'d4',name:'Tom Walsh'}];
- const patients=[['p1','Hale, Marcus','delta'],['p2','Ortiz, Lucía','mc_adult'],['p3','Brennan, Claire','delta'],['p4','Nguyen, Daniel','guardian'],['p5','Kowalski, Ann','noins'],['p6','Reyes, Tomás','mc_child'],['p7','Whitfield, Grace','delta'],['p8','Osei, Kwame',null],['p9','Lindqvist, Eva','unum'],['p10','Moreau, Julien','delta'],['p11','Patel, Ravi','va'],['p12','Delgado, Rosa',null],['p13','Fischer, Owen','delta'],['p14','Santos, Bianca','mc_adult'],['p15','Ibarra, Leo','mc_child'],['p16','Wright, Samuel','mc_adult'],['p17','Chen, Mia','noins']].map(([id,name,plan])=>({id,name,plan}));
- let n=0;
- const V=(day,d,p,text)=>({id:'v'+(++n),date:'2026-10-'+day,dentist:d,patient:p,items:PD.usable(PD.parseText(text)).map(toDropdown)});
- const visits=[
-  V(19,'d1','p1','Periodic exam, 4 BW, Prophylaxis'),V(19,'d1','p3','#4 DO #20 DO Resin Composite'),V(19,'d1','p6',"Periodic exam, 4 BW, 3 PA's, Prophylaxis-child"),
-  V(20,'d1','p7','15 core bu and crown prep'),V(20,'d1','p10','Comp exam, 4 BW, Pano'),
-  V(21,'d1','p8','Limited exam, PA'),V(21,'d1','p1','Periodic exam, 4 BW'),V(21,'d1','p13','29 deliver crown'),V(21,'d1','p16','Comp exam, 4 BW, Pano, Fluoride'),V(21,'d1','p17','Comp exam, Prophylaxis'),
-  V(19,'d2','p2','Comp exam, 4 BW, Pano, Fluoride'),V(19,'d2','p4','#15 O #14 OL Resin Composite'),
-  V(20,'d2','p11','Comp exam, FMX'),V(20,'d2','p5','Comp exam, Prophylaxis'),V(21,'d2','p14','Implant crown impression #30'),
-  V(19,'d3','p9','#15 MOL Resin composite, Prophylaxis'),V(20,'d3','p12','No core bu, crown preps 11 and 15'),
-  V(21,'d3','p3','follow up'),V(21,'d3','p13','Local for scaling root planing UL, LL'),
-  V(19,'d4','p10','1 ext'),V(19,'d4','p6','19 RCT'),V(20,'d4','p7','Periodic exam, Prophylaxis'),
-  V(21,'d4','p11','#3 MOD Resin composite'),V(21,'d4','p15','Oral eval child under 3, Prophylaxis-child'),
- ];
- return {v:6,lang:'en',page:'today',dentist:'all',date:TODAY,view:'all',pview:'all',q:'',dentists,patients,fees:PD.defaultFees(),visits,implantIdx:0,approved:{},open:{},nextVisit:n+1,nextPat:18};
+ // Insurance as Dentrix returns it: a plan key, or null when Dentrix has none
+ const patients=[['Hale, Marcus','delta'],['Ortiz, Lucía','mc_adult'],['Brennan, Claire','delta'],['Nguyen, Daniel','guardian'],['Kowalski, Ann','noins'],['Reyes, Tomás','mc_child'],['Whitfield, Grace','delta'],['Osei, Kwame',null],['Lindqvist, Eva','unum'],['Moreau, Julien','delta'],['Patel, Ravi','va'],['Delgado, Rosa','delta'],['Fischer, Owen','delta'],['Santos, Bianca','mc_adult'],['Ibarra, Leo','mc_child'],['Wright, Samuel','mc_adult'],['Chen, Mia','noins'],['Okafor, Grace','guardian'],['Silva, Pedro','delta'],['Murphy, Kate','delta']].map(([name,plan],i)=>({id:'p'+(i+1),name,plan}));
+ const times=['8:30','9:15','10:00','11:00','12:30','14:00'];
+ const C=(code,o)=>Object.assign({code},o||{});
+ let n=0;const visits=[];
+ const V=(day,d,p,ti,codes)=>visits.push({id:'v'+(++n),date:'2026-10-'+day,dentist:d,patient:p,time:times[ti],codes,saved:codes.length>0});
+ // Laura, today: three done, three to do
+ V(21,'d1','p1',0,[C('D0120'),C('D0274'),C('D1110')]);V(21,'d1','p13',1,[C('D2740',{tooth:'29',stage:'seat'})]);V(21,'d1','p8',2,[C('D0140'),C('D0220')]);
+ V(21,'d1','p16',3,[]);V(21,'d1','p17',4,[]);V(21,'d1','p3',5,[]);
+ // Earlier days and other dentists
+ V(19,'d1','p1',0,[C('D0120'),C('D0274'),C('D1110')]);V(19,'d1','p3',1,[C('D2392',{tooth:'4'}),C('D2392',{tooth:'20'})]);V(19,'d1','p6',2,[C('D0120'),C('D0274'),C('D0220'),C('D0230'),C('D0230'),C('D1120')]);
+ V(20,'d1','p7',0,[C('D2950',{tooth:'15'}),C('D2740',{tooth:'15',stage:'prep'})]);V(20,'d1','p10',1,[C('D0150'),C('D0274'),C('D0330')]);
+ V(19,'d2','p2',0,[C('D0150'),C('D0274'),C('D0330'),C('D1206')]);V(19,'d2','p4',1,[C('D2391',{tooth:'15'}),C('D2392',{tooth:'14'})]);
+ V(20,'d2','p11',0,[C('D0150'),C('D0210')]);V(20,'d2','p5',1,[C('D0150'),C('D1110')]);V(21,'d2','p14',0,[C('D6065',{tooth:'30',stage:'prep'})]);V(21,'d2','p18',1,[C('D0120'),C('D0274'),C('D1110')]);
+ V(19,'d3','p9',0,[C('D2393',{tooth:'15'}),C('D1110')]);V(20,'d3','p12',0,[C('D2740',{tooth:'11',stage:'prep'}),C('D2740',{tooth:'15',stage:'prep'})]);V(21,'d3','p19',0,[C('D0171')]);V(21,'d3','p20',1,[C('D4341')]);
+ V(19,'d4','p10',0,[C('D7140',{tooth:'1'})]);V(19,'d4','p6',1,[C('D3330',{tooth:'19'})]);V(20,'d4','p7',0,[C('D0120'),C('D1110')]);V(21,'d4','p11',0,[C('D2393',{tooth:'3'})]);V(21,'d4','p15',1,[C('D0145'),C('D1120')]);
+ return {v:7,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),customCodes:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,form:null};
 }
-
 let S;
-try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===6&&Array.isArray(p.visits))S=p;}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===7&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
-let D=null; // open record panel: {type:'visit',id} | {type:'new',draft} | {type:'patient',id}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
+let SAVED_AT=null;
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -399,308 +272,187 @@ function t(k,...a){const v=T[S.lang][k];return typeof v==='function'?v(...a):(v?
 const money=v=>v==null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);
 const sum=a=>a.reduce((x,y)=>x+y,0);
 const fmtDate=(iso,o)=>new Date(iso+'T12:00:00').toLocaleDateString(t('locale'),o||{weekday:'long',day:'numeric',month:'long'});
-const den=id=>S.dentists.find(d=>d.id===id);
 const pat=id=>S.patients.find(p=>p.id===id);
-const idNum=id=>+String(id).slice(1);
+const allCodes=()=>CODES.concat(S.customCodes);
+const codeInfo=c=>allCodes().find(x=>x.code===c);
+const codeName=c=>{const x=codeInfo(c);return x?x[S.lang]:c;};
+const allPlans=()=>PD.PLAN_ORDER.map(k=>({id:k,name:PD.PLANS[k][S.lang].replace(/\s*\(.*\)$/,''),col:PD.PLANS[k].col})).concat(S.customPlans);
+const planInfo=k=>allPlans().find(p=>p.id===k);
 const colName=c=>c?PD.COL_NAMES[c]:'—';
-const planLong=k=>k&&PD.PLANS[k]?PD.PLANS[k][S.lang]:'';
-const planShort=k=>planLong(k).replace(/\s*\(.*\)$/,'');
-const weekVisits=()=>S.visits.filter(v=>DAYS.includes(v.date));
-const itemName=id=>PD.ITEM[id]?PD.ITEM[id][S.lang]:id;
-const groupLabel=g=>{const x=PD.GROUPS.find(r=>r[0]===g);return x?(S.lang==='es'?x[1]:x[2]):g;};
-const optLabel=id=>id==='pa'?'PA (periapical)':itemName(id);
-function itemLabel(it){if(it.k==='btw')return `${it.n} BW`;if(it.k==='pa')return it.n>1?`${it.n} PA`:'PA';return itemName(it.k)+(it.tooth?' #'+it.tooth:'');}
-function partLabel(p){return itemName(p.id)+(p.qty>1?' ×'+p.qty:'')+(p.tooth?' #'+p.tooth:'');}
-function opts(){return {fees:S.fees,implantIdx:S.implantIdx};}
-function validTooth(s){s=String(s||'').trim().toUpperCase().replace(/^#/,'');if(!s)return '';if(/^[A-T]$/.test(s))return s;if(/^\d{1,2}$/.test(s)&&+s>=1&&+s<=32)return String(+s);return null;}
-function initials(name){const [last,first]=String(name).split(',').map(x=>(x||'').trim());return ((first||'')[0]||'')+((last||'')[0]||'');}
-function avatar(name,lg){let h=0;for(const ch of name)h=(h*31+ch.charCodeAt(0))>>>0;const k=1+h%6;return `<span class="av ${lg?'lg':''}" style="background:var(--av${k});color:var(--av${k}i)" aria-hidden="true">${esc(initials(name).toUpperCase())}</span>`;}
 
-function evalItems(items,plan,v){
- const r=PD.priceVisit(items,plan,opts());
- if(v&&!v.dupOk&&items.some(i=>DUP_KEYS.has(i.k))&&S.visits.some(o=>o!==v&&o.patient===v.patient&&(o.date<v.date||(o.date===v.date&&idNum(o.id)<idNum(v.id)))&&o.items.some(i=>DUP_KEYS.has(i.k)&&items.some(j=>j.k===i.k))))r.alerts.push('dup');
+// codes → engine items; the same crown code is a different pay event at prep and at delivery
+function engineItems(codes){
+ const out=[];let pa=0,btw=0;
+ codes.forEach(e=>{
+  const ci=codeInfo(e.code);if(!ci){out.push({k:'other'});return;}
+  const it=ci.item;
+  if(it==='pa'||it==='paadd'){pa++;return;}
+  if(/^btw\d$/.test(it)){btw=Math.min(4,btw+ +it.slice(3));return;}
+  if(it==='crown'){out.push({k:e.stage==='seat'?'crowndel':'crownprep',tooth:e.tooth});return;}
+  if(it==='implant'){out.push({k:e.stage==='seat'?'impldel':'implimp',tooth:e.tooth});return;}
+  out.push({k:it,tooth:e.tooth});
+ });
+ if(btw)out.push({k:'btw',n:btw});
+ if(pa)out.push({k:'pa',n:pa});
+ return out;
+}
+function evalVisit(v){
+ const p=pat(v.patient);const pl=p&&p.plan?planInfo(p.plan):null;
+ const planKey=pl?(PD.PLANS[pl.id]?pl.id:PLAN_FOR_COL[pl.col]):null;
+ const r=PD.priceVisit(engineItems(v.codes),planKey,{fees:S.fees,implantIdx:S.implantIdx});
+ if(!v.codes.length)r.alerts=['empty'];
  r.blocking=r.alerts.filter(a=>BLOCKING.has(a)).length;
- r.missing=r.parts.filter(x=>x.amount==null&&!(PD.ITEM[x.id]&&PD.ITEM[x.id].g==='notable')).map(partLabel);
- r.notIn=r.parts.filter(x=>PD.ITEM[x.id]&&PD.ITEM[x.id].g==='notable').map(partLabel);
- r.status=!items.length?'empty':r.alerts.includes('noIns')?'noIns':r.blocking?'review':r.alerts.length?'warn':'ok';
+ const label=x=>{const it=PD.ITEM[x.id];return (it?it[S.lang]:x.id)+(x.qty>1?' ×'+x.qty:'');};
+ r.missing=r.parts.filter(x=>x.amount==null&&!(PD.ITEM[x.id]&&PD.ITEM[x.id].g==='notable')).map(label);
+ r.notIn=r.parts.filter(x=>PD.ITEM[x.id]&&PD.ITEM[x.id].g==='notable').map(label);
  return r;
 }
-function evalVisit(v){const p=pat(v.patient);return evalItems(v.items,p?p.plan:null,v);}
-const STATUS_CLASS={ok:'ok',noIns:'bad',review:'bad',warn:'warn',empty:'none'};
-function statusPill(s){return `<span class="pill ${STATUS_CLASS[s]}">${t('s_'+s)}</span>`;}
-function alertMsg(a,e){return a==='noIns'?t('a_noIns'):a==='noPrice'?t('a_noPrice',e.missing.join(', '),colName(e.col)):a==='notInTable'?t('a_notInTable',e.notIn.join(', ')):a==='twoPrices'?t('a_twoPrices'):t('a_dup');}
-function findPatient(name){const k=name.trim().toLowerCase();return S.patients.find(p=>p.name.toLowerCase()===k);}
+function alertMsg(a,e){return a==='noIns'?t('a_noIns'):a==='noPrice'?t('a_noPrice',e.missing.join(', '),colName(e.col)):a==='notInTable'?t('a_notInTable',e.notIn.join(', ')):a==='twoPrices'?t('a_twoPrices'):t('a_empty');}
 
-let toastTimer;
-function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200);}
+let toastT;
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
 
 /* ---------- shell ---------- */
 function renderShell(){
- document.documentElement.lang=S.lang;document.title=S.lang==='es'?'Producción Dental Delaware':'Dental Production Delaware';
+ document.documentElement.lang=S.lang;
+ document.title=S.lang==='es'?'Producción Dental Delaware':'Dental Production Delaware';
  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
- $('#lang-es').setAttribute('aria-pressed',S.lang==='es');
- $('#lang-en').setAttribute('aria-pressed',S.lang==='en');
- const wk=weekVisits().map(evalVisit);
- const cnt={today:0,patients:S.patients.filter(p=>!p.plan&&weekVisits().some(v=>v.patient===p.id)).length,payroll:sum(wk.map(e=>e.blocking)),fees:0};
- $('#nav').innerHTML=PAGES.map(k=>`<button type="button" class="navi" data-action="page" data-page="${k}" ${S.page===k?'aria-current="page"':''}>${svg(k)}<span>${t('nav_'+k)}</span>${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
+ $('#lang-en').setAttribute('aria-pressed',S.lang==='en');$('#lang-es').setAttribute('aria-pressed',S.lang==='es');
+ const alerts=sum(S.visits.filter(v=>v.codes.length).map(v=>evalVisit(v).blocking));
+ $('#tabs').innerHTML=PAGES.map(k=>`<button type="button" class="tab" role="tab" data-action="page" data-page="${k}" aria-selected="${S.page===k}">${t('tab_'+k)}${k==='summary'&&alerts?`<span class="cnt">${alerts}</span>`:''}</button>`).join('');
 }
-function topbar(title,sub,extra){
- return `<div class="topbar"><div><h1>${esc(title)}</h1><div class="sub">${sub}</div></div><div class="tb-actions">${extra||''}<button type="button" class="btn" data-action="new">${t('newVisit')}</button></div></div>`;
-}
-function searchBox(){return `<label class="search">${svg('search')}<input type="search" id="q" placeholder="${esc(t('search'))}" value="${esc(S.q)}" aria-label="${esc(t('search'))}"></label>`;}
-function render(){
- renderShell();
- ({today:renderToday,patients:renderPatients,payroll:renderPayroll,fees:renderFees})[S.page]();
- renderDrawer();
-}
+function render(){renderShell();({dentist:renderDentist,summary:renderSummary,fees:renderFees})[S.page]();}
 function setPage(k){S.page=k;save();render();try{history.replaceState(null,'','#'+k);}catch(e){}window.scrollTo(0,0);}
 
-/* ---------- visits ---------- */
-function matchesQ(v){if(!S.q.trim())return true;return pat(v.patient).name.toLowerCase().includes(S.q.trim().toLowerCase());}
-function renderToday(){
- const base=S.visits.filter(v=>v.date===S.date&&(S.dentist==='all'||v.dentist===S.dentist)&&matchesQ(v)).sort((a,b)=>idNum(a.id)-idNum(b.id));
- const ev=base.map(v=>[v,evalVisit(v)]);
- const by=s=>ev.filter(([,e])=>s==='review'?(e.status==='review'||e.status==='warn'):e.status===s);
- const groups={all:ev,noIns:by('noIns'),review:by('review'),ok:by('ok')};
- const rows=groups[S.view]||ev;
- const pay=sum(ev.map(([,e])=>e.total||0));
- const showDen=S.dentist==='all';
- const kpi=(k,cls,v,view)=>`<button type="button" class="kpi ${cls}" data-action="view" data-view="${view}" aria-pressed="${S.view===view}"><span class="k">${t('kpi_'+k)}</span><span class="v">${v}</span><span class="h">${t('kh_'+k)}</span></button>`;
+/* ---------- dentist ---------- */
+function dayVisits(){return S.visits.filter(v=>v.dentist===S.dentist&&v.date===S.date).sort((a,b)=>a.time.localeCompare(b.time,undefined,{numeric:true}));}
+function renderDentist(){
+ const vs=dayVisits();
+ if(!S.sel||!vs.some(v=>v.id===S.sel))S.sel=(vs.find(v=>!v.saved)||vs[0]||{}).id||null;
  $('#main').innerHTML=`
- ${topbar(t('title_today'),esc(t('sub_today',fmtDate(S.date),base.length)),searchBox())}
- <div class="kpis">
-  ${kpi('visits','',ev.length,'all')}
-  ${kpi('noIns',groups.noIns.length?'bad':'good',groups.noIns.length,'noIns')}
-  ${kpi('review',groups.review.length?'warn':'good',groups.review.length,'review')}
-  <div class="kpi"><span class="k">${t('kpi_pay')}</span><span class="v">${money(pay)}</span><span class="h">${t('kh_pay')}</span></div>
+ <div class="bar">
+  <label for="sel-d">${t('iam')} <select id="sel-d" data-f="dentist">${S.dentists.map(d=>`<option value="${d.id}" ${d.id===S.dentist?'selected':''}>${esc(d.name)}</option>`).join('')}</select></label>
+  <div class="days" role="group">${DAYS.map(d=>`<button type="button" class="day" data-action="day" data-d="${d}" aria-pressed="${S.date===d}">${esc(fmtDate(d,{weekday:'short',day:'numeric'}))}</button>`).join('')}</div>
  </div>
- <section class="panel">
-  <div class="panel-head">
-   <div class="views" role="tablist">${['all','noIns','review','ok'].map(k=>`<button type="button" class="vtab" role="tab" data-action="view" data-view="${k}" aria-selected="${S.view===k}">${t('view_'+k)}<span class="n">${groups[k].length}</span></button>`).join('')}</div>
-   <div class="filters">
-    <select id="f-dentist" data-f="dentist" aria-label="${esc(t('col_dentist'))}"><option value="all">${t('allDentists')}</option>${S.dentists.map(d=>`<option value="${d.id}" ${S.dentist===d.id?'selected':''}>${esc(d.name)}</option>`).join('')}</select>
-    <div class="days" role="group">${DAYS.map(d=>`<button type="button" class="day" data-action="day" data-d="${d}" aria-pressed="${S.date===d}">${esc(fmtDate(d,{weekday:'short',day:'numeric'}))}</button>`).join('')}</div>
-   </div>
-  </div>
-  ${rows.length?`<div class="tablewrap"><table class="list"><thead><tr><th>${t('col_patient')}</th><th>${t('col_treat')}</th><th>${t('col_plan')}</th><th class="num">${t('col_amount')}</th><th>${t('col_status')}</th></tr></thead><tbody>
-  ${rows.map(([v,e])=>{const p=pat(v.patient);const shown=v.items.slice(0,3);const extra=v.items.length-shown.length;return `<tr class="rec ${D&&D.type==='visit'&&D.id===v.id?'cur':''}" data-action="open-visit" data-v="${v.id}" tabindex="0">
-   <td><div class="who">${avatar(p.name)}<div style="min-width:0"><div class="nm">${esc(p.name)}</div>${showDen?`<div class="meta">${esc(den(v.dentist).name)}</div>`:''}</div></div></td>
-   <td><div class="tags">${shown.map(it=>`<span class="tag ${PD.ITEM[it.k]&&PD.ITEM[it.k].g==='nopay'?'np':''}">${esc(itemLabel(it))}</span>`).join('')}${extra>0?`<span class="tag">+${extra}</span>`:''}</div></td>
-   <td>${p.plan?`<span class="plan">${esc(planShort(p.plan))}</span>`:`<span class="plan missing">${t('s_noIns')}</span>`}</td>
-   <td class="num">${e.col?money(e.total):'<span class="muted">—</span>'}</td>
-   <td>${statusPill(e.status)}</td></tr>`;}).join('')}
-  </tbody><tfoot><tr><td colspan="3">${t('total')}</td><td class="num">${money(sum(rows.map(([,e])=>e.total||0)))}</td><td></td></tr></tfoot></table></div>`
-  :`<div class="empty">${base.length?t('emptyView'):t('emptyDay')}${base.length?'':`<div><button type="button" class="btn" data-action="new">${t('newVisit')}</button></div>`}</div>`}
- </section>`;
+ <div class="dgrid">
+  <section class="panel"><div class="ph"><h2>${t('today')}</h2><span class="muted" style="font-size:.84rem">${t('fromDentrix')}</span></div>
+   <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const e=evalVisit(v);return `<li><button type="button" class="pbtn" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="time">${esc(v.time)}</span><span class="nm"><b>${esc(p.name)}</b><span>${pl?esc(pl.name):`<span style="color:var(--bad)">${t('noInsBadge')}</span>`}</span></span>${v.saved&&v.codes.length?`<span class="badge ${e.blocking?'bad':'done'}">${t('done')}</span>`:`<span class="badge todo">${t('todo')}</span>`}</button></li>`;}).join('')}</ul>
+   <div style="padding:0 8px 10px"><input type="text" id="walkin" list="dl-pat" placeholder="${esc(t('walkinPh'))}" style="width:100%" aria-label="${esc(t('walkin'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist></div>
+  </section>
+  <section class="panel" id="ppanel">${patientPanel()}</section>
+ </div>`;
+}
+function patientPanel(){
+ const v=S.visits.find(x=>x.id===S.sel);
+ if(!v)return `<div class="pb"><p class="empty">${t('pick')}</p></div>`;
+ const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;
+ return `<div class="pb">
+  <div class="pt"><h2>${esc(p.name)}</h2><span class="muted mono">${esc(v.time)}</span></div>
+  ${pl?`<p class="ins">${t('insFrom')} <b>${esc(pl.name)}</b></p>`:`<p class="warnbox">${t('insMissing')}</p>`}
+  <p class="q">${t('what')}</p>
+  <div class="addrow"><input type="text" id="code-in" list="dl-codes" autocomplete="off" placeholder="${esc(t('codePh'))}" aria-label="${esc(t('what'))}"><button type="button" class="btn" data-action="add-code">${t('add')}</button></div>
+  <datalist id="dl-codes">${allCodes().map(c=>`<option value="${c.code} · ${esc(c[S.lang])}"></option>`).join('')}</datalist>
+  <div><p class="muted" style="font-size:.82rem;margin-bottom:6px">${t('common')}</p><div class="quick">${QUICK.map(c=>`<button type="button" class="qb" data-action="quick" data-c="${c}"><span class="c">${c}</span><span class="n">${esc(codeName(c))}</span></button>`).join('')}</div></div>
+  ${v.codes.length?`<ul class="done-list">${v.codes.map((e,i)=>{const ci=codeInfo(e.code);return `<li><span class="c">${esc(e.code)}</span><span class="n">${esc(codeName(e.code))}</span>${ci&&ci.stage?`<span class="seg" role="group">${['prep','seat'].map(s=>`<button type="button" data-action="stage" data-i="${i}" data-s="${s}" aria-pressed="${(e.stage||'prep')===s}">${t(s)}</button>`).join('')}</span>`:''}${ci&&TOOTH_ITEMS.has(ci.item)?`<input type="text" id="tooth-${i}" data-f="tooth" data-i="${i}" value="${esc(e.tooth||'')}" placeholder="${esc(t('tooth'))}" maxlength="3" aria-label="${esc(t('tooth'))}">`:''}<button type="button" class="rm" data-action="rm" data-i="${i}" aria-label="${esc(t('remove'))}">×</button></li>`;}).join('')}</ul>`:`<p class="empty">${t('nothing')}</p>`}
+  <div class="saverow"><span class="saved">${SAVED_AT===v.id?'✓ '+t('savedMsg'):''}</span><button type="button" class="btn go" data-action="save" ${v.codes.length?'':'disabled'}>${t('save')}</button></div>
+ </div>`;
+}
+function refreshPanel(focusId){$('#ppanel').innerHTML=patientPanel();if(focusId){const el=document.getElementById(focusId);if(el)el.focus();}}
+function curVisit(){return S.visits.find(x=>x.id===S.sel);}
+function addCode(raw){
+ const v=curVisit();if(!v)return;
+ const code=String(raw||'').trim().split(/[\s·]/)[0].toUpperCase();
+ let ci=codeInfo(code);
+ if(!ci){const q=String(raw||'').trim().toLowerCase();if(q.length>=3)ci=allCodes().find(c=>c.en.toLowerCase().includes(q)||c.es.toLowerCase().includes(q));}
+ if(!ci){toast(t('unknownCode'));return;}
+ v.codes.push(ci.stage?{code:ci.code,stage:'prep'}:{code:ci.code});v.saved=false;SAVED_AT=null;save();renderShell();
+ const i=v.codes.length-1;
+ refreshPanel(TOOTH_ITEMS.has(ci.item)?'tooth-'+i:'code-in');
 }
 
-/* ---------- patients ---------- */
-function renderPatients(){
- const wk=weekVisits();
- const list=S.patients.filter(p=>!S.q.trim()||p.name.toLowerCase().includes(S.q.trim().toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name));
- const noIns=list.filter(p=>!p.plan);
- const rows=S.pview==='noIns'?noIns:list;
- $('#main').innerHTML=`
- ${topbar(t('title_patients'),esc(t('sub_patients',S.patients.length,S.patients.filter(p=>!p.plan).length)),searchBox())}
- <section class="panel">
-  <div class="panel-head"><div class="views" role="tablist">${[['all',list.length],['noIns',noIns.length]].map(([k,n])=>`<button type="button" class="vtab" role="tab" data-action="pview" data-view="${k}" aria-selected="${S.pview===k}">${t(k==='all'?'view_pAll':'view_pNoIns')}<span class="n">${n}</span></button>`).join('')}</div></div>
-  ${rows.length?`<div class="tablewrap"><table class="list"><thead><tr><th>${t('col_patient')}</th><th>${t('col_plan')}</th><th class="num">${t('col_visits')}</th><th>${t('col_last')}</th><th>${t('col_dentists')}</th></tr></thead><tbody>
-  ${rows.map(p=>{const vs=wk.filter(v=>v.patient===p.id).sort((a,b)=>b.date.localeCompare(a.date));const ds=[...new Set(vs.map(v=>den(v.dentist).name))];return `<tr class="rec ${D&&D.type==='patient'&&D.id===p.id?'cur':''}" data-action="open-patient" data-p="${p.id}" tabindex="0">
-   <td><div class="who">${avatar(p.name)}<div class="nm">${esc(p.name)}</div></div></td>
-   <td>${p.plan?`<span class="plan">${esc(planShort(p.plan))}</span> <span class="muted small">· ${esc(colName(PD.PLANS[p.plan].col))}</span>`:`<span class="plan missing">${t('s_noIns')}</span>`}</td>
-   <td class="num">${vs.length}</td><td>${vs.length?esc(fmtDate(vs[0].date,{weekday:'short',day:'numeric',month:'short'})):'—'}</td><td class="small">${esc(ds.join(', '))}</td></tr>`;}).join('')}
-  </tbody></table></div>`:`<div class="empty">${t('emptyView')}</div>`}
- </section>`;
-}
-
-/* ---------- payroll ---------- */
-function dentistRows(){
- const wk=weekVisits();
- return S.dentists.map(d=>{
-  const vs=wk.filter(v=>v.dentist===d.id).sort((a,b)=>a.date.localeCompare(b.date)||idNum(a.id)-idNum(b.id));
-  const ev=vs.map(v=>[v,evalVisit(v)]);
-  const pay=Math.round(sum(ev.map(([,e])=>e.total||0))*100)/100;
-  const block=sum(ev.map(([,e])=>e.blocking)),warn=ev.filter(([,e])=>e.alerts.some(a=>!BLOCKING.has(a))).length;
-  const appr=S.approved[d.id]!=null&&Math.abs(S.approved[d.id]-pay)<0.005&&!block;
-  return {d,vs,ev,pay,block,warn,appr,n:sum(vs.map(v=>v.items.length))};
- });
-}
-function renderPayroll(){
- const rows=dentistRows();
+/* ---------- summary ---------- */
+function renderSummary(){
+ const rows=S.dentists.map(d=>{const vs=S.visits.filter(v=>v.dentist===d.id&&v.codes.length).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time,undefined,{numeric:true}));const ev=vs.map(v=>[v,evalVisit(v)]);return {d,vs,ev,pay:Math.round(sum(ev.map(([,e])=>e.total||0))*100)/100,alerts:ev.filter(([,e])=>e.alerts.length).length};});
  const alerts=[];rows.forEach(r=>r.ev.forEach(([v,e])=>e.alerts.forEach(a=>alerts.push({v,e,a,d:r.d}))));
  alerts.sort((x,y)=>(BLOCKING.has(y.a)?1:0)-(BLOCKING.has(x.a)?1:0));
  const short=iso=>fmtDate(iso,{weekday:'short',day:'numeric'});
- const blockTotal=sum(rows.map(r=>r.block));
+ const total=sum(rows.map(r=>r.pay));
  $('#main').innerHTML=`
- ${topbar(t('title_payroll'),esc(t('sub_payroll')))}
+ <div class="bar"><h1 style="font-size:1.4rem">${t('sumTitle')}</h1><span class="muted">${t('period')}</span></div>
  <div class="kpis">
-  <div class="kpi"><span class="k">${t('kpi_total')}</span><span class="v">${money(sum(rows.map(r=>r.pay)))}</span><span class="h">${S.dentists.length} ${t('col_dentist').toLowerCase()}s</span></div>
-  <div class="kpi ${rows.every(r=>r.appr)?'good':''}"><span class="k">${t('kpi_approved')}</span><span class="v">${rows.filter(r=>r.appr).length} / ${rows.length}</span><span class="h">${t('approve')}</span></div>
-  <div class="kpi ${blockTotal?'bad':'good'}"><span class="k">${t('kpi_block')}</span><span class="v">${blockTotal}</span><span class="h">${t('alertsTitle')}</span></div>
-  <div class="kpi"><span class="k">${t('col_patients')}</span><span class="v">${sum(rows.map(r=>r.vs.length))}</span><span class="h">${sum(rows.map(r=>r.n))} ${t('col_n').toLowerCase()}</span></div>
+  <div class="kpi"><span>${t('k_total')}</span><b>${money(total)}</b></div>
+  <div class="kpi"><span>${t('k_pat')}</span><b>${sum(rows.map(r=>r.vs.length))}</b></div>
+  <div class="kpi ${alerts.length?'bad':'good'}"><span>${t('k_alerts')}</span><b>${alerts.length}</b></div>
  </div>
  <div class="stack">
- <section class="panel"><div class="tablewrap"><table class="plain"><thead><tr><th>${t('col_dentist')}</th><th class="num">${t('col_patients')}</th><th class="num">${t('col_n')}</th><th class="num">${t('col_pay')}</th><th>${t('col_alerts')}</th><th></th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td><div class="who">${avatar(r.d.name.split(' ').reverse().join(', '))}<div><div style="font-weight:700">${esc(r.d.name)}</div><button type="button" class="linkbtn small" data-action="toggle" data-d="${r.d.id}">${S.open[r.d.id]?t('hide'):t('details')}</button></div></div></td>
-   <td class="num">${r.vs.length}</td><td class="num">${r.n}</td><td class="num"><b>${money(r.pay)}</b></td>
-   <td>${r.block?`<span class="pill bad">${r.block}</span> `:''}${r.warn?`<span class="pill warn">${r.warn}</span>`:''}${!r.block&&!r.warn?`<span class="pill ok">0</span>`:''}</td>
-   <td style="white-space:nowrap;text-align:right">${r.appr?`<span class="pill ok">${t('approved')}</span> <button type="button" class="linkbtn small" data-action="unapprove" data-d="${r.d.id}">${t('undo')}</button>`:r.block?`<span class="muted small">${t('resolveFirst',r.block)}</span>`:`<button type="button" class="btn sm" data-action="approve" data-d="${r.d.id}">${t('approve')}</button>`}</td></tr>
-   ${S.open[r.d.id]?`<tr class="detail"><td colspan="6"><table class="inner"><tbody>${r.ev.map(([v,e])=>`<tr><td class="mono">${esc(short(v.date))}</td><td><button type="button" class="linkbtn" data-action="open-visit" data-v="${v.id}">${esc(pat(v.patient).name)}</button></td><td class="small">${esc(v.items.map(itemLabel).join(', '))}</td><td class="num">${money(e.total)}</td><td>${statusPill(e.status)}</td></tr>`).join('')}</tbody></table></td></tr>`:''}`).join('')}
- </tbody><tfoot><tr><td>${t('total')}</td><td class="num">${sum(rows.map(r=>r.vs.length))}</td><td class="num">${sum(rows.map(r=>r.n))}</td><td class="num">${money(sum(rows.map(r=>r.pay)))}</td><td colspan="2"></td></tr></tfoot></table></div></section>
- <section class="panel"><div class="panel-head"><h2 style="font-size:1rem">${t('alertsTitle')}</h2><span class="muted">${alerts.length||''}</span></div>
-  ${alerts.length?`<ul class="alerts">${alerts.map(x=>`<li class="${BLOCKING.has(x.a)?'':'warn'}"><div class="what"><span><b>${esc(pat(x.v.patient).name)}</b> · ${esc(x.v.items.map(itemLabel).join(', '))}</span><span class="muted small">${esc(alertMsg(x.a,x.e))} ${esc(x.d.name)} · ${esc(short(x.v.date))}</span></div><div style="display:flex;gap:6px">${x.a==='dup'?`<button type="button" class="btn sec sm" data-action="dup-ok" data-v="${x.v.id}">${t('keep')}</button>`:''}<button type="button" class="btn sec sm" data-action="open-visit" data-v="${x.v.id}">${t('open')}</button></div></li>`).join('')}</ul>`:`<p class="okline">${t('alertsNone')}</p>`}
- </section></div>`;
-}
-
-/* ---------- fees ---------- */
-function renderFees(){
- const cell=(id,c)=>{const v=S.fees[id][c];if(Array.isArray(v))return `<td class="num small">${v.map(x=>x.toFixed(2)).join(' / ')}</td>`;return `<td class="num"><input type="number" min="0" step="0.01" id="fee-${id}-${c}" data-f="fee" data-id="${id}" data-col="${c}" value="${v==null?'':v}" placeholder="—" aria-label="${esc(itemName(id)+' · '+PD.COL_NAMES[c])}"></td>`;};
- $('#main').innerHTML=`
- ${topbar(t('title_fees'),esc(t('sub_fees')))}
- <div class="split">
-  <section class="panel"><div class="panel-head"><h2 style="font-size:1rem">${t('feesTitle')}</h2><span class="muted small">${t('feesIntro')}</span></div>
-   <div class="tablewrap fees"><table class="plain"><thead><tr><th>${t('colProc')}</th>${PD.COLS.map(c=>`<th class="num">${esc(PD.COL_NAMES[c])}</th>`).join('')}</tr></thead><tbody>
-   ${PD.GROUPS.map(([g])=>`<tr class="grp"><td colspan="${1+PD.COLS.length}">${esc(groupLabel(g))}</td></tr>${PD.ITEMS.filter(i=>i.g===g).map(i=>`<tr><td style="min-width:210px">${esc(i[S.lang])}</td>${PD.COLS.map(c=>cell(i.id,c)).join('')}</tr>`).join('')}`).join('')}
-   </tbody></table></div></section>
-  <section class="panel"><div class="panel-head"><h2 style="font-size:1rem">${t('rulesTitle')}</h2></div>
-   <ul class="rules">
-    <li><span>${t('implantRule')}</span><div class="seg" role="group">${[0,1].map(i=>`<button type="button" data-action="implant" data-i="${i}" aria-pressed="${S.implantIdx===i}">${[508.4,406.4][i].toFixed(2)}</button>`).join('')}</div><span class="rtag ded">${t('tagConfirm')}</span></li>
-    ${T[S.lang].rules.map(([txt,k])=>`<li><span>${esc(txt)}</span><span class="rtag ${k==='ded'?'ded':''}">${k==='ded'?t('tagDeduced'):t('tagTable')}</span></li>`).join('')}
-   </ul></section>
+ <section class="panel"><div class="ph"><h2>${t('colDentists')}</h2><button type="button" class="btn sm" data-action="adp">${t('exportAdp')}</button></div><div class="tablewrap"><table class="plain"><thead><tr><th>${t('colDentist')}</th><th class="num">${t('colPatients')}</th><th class="num">${t('colTotal')}</th><th>${t('colAlerts')}</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr><td><b>${esc(r.d.name)}</b><br><button type="button" class="linkbtn" style="font-size:.84rem" data-action="toggle" data-d="${r.d.id}">${S.open[r.d.id]?t('hide'):t('details')}</button></td><td class="num">${r.vs.length}</td><td class="num"><b>${money(r.pay)}</b></td><td>${r.alerts?`<span class="badge bad">${r.alerts}</span>`:`<span class="badge done">0</span>`}</td></tr>
+  ${S.open[r.d.id]?`<tr class="detail"><td colspan="4"><div class="tablewrap"><table class="inner"><tbody>${r.ev.map(([v,e])=>{const p=pat(v.patient);return `<tr><td class="mono">${esc(short(v.date))}</td><td>${esc(p.name)}</td><td class="mono" style="font-size:.82rem">${esc(v.codes.map(c=>c.code+(c.tooth?' #'+c.tooth:'')).join(', '))}</td><td>${esc(p.plan?planInfo(p.plan).name:'—')}</td><td class="num">${money(e.total)}</td></tr>`;}).join('')}</tbody></table></div></td></tr>`:''}`).join('')}
+ </tbody><tfoot><tr><td>${t('total')}</td><td></td><td class="num">${money(total)}</td><td></td></tr></tfoot></table></div></section>
+ <section class="panel"><div class="ph"><h2>${t('alertsTitle')}</h2></div><div class="pb">${alerts.length?`<ul class="alerts">${alerts.map(x=>`<li class="${BLOCKING.has(x.a)?'':'warn'}"><b>${esc(pat(x.v.patient).name)}</b> · ${esc(x.d.name)} · ${esc(short(x.v.date))}<br><span class="muted">${esc(alertMsg(x.a,x.e))}</span></li>`).join('')}</ul>`:`<p class="okline">${t('alertsNone')}</p>`}</div></section>
  </div>`;
 }
 
-/* ---------- record panel ---------- */
-function curItems(){if(!D)return null;if(D.type==='new')return D.draft.items;if(D.type==='visit'){const v=visit(D.id);return v?v.items:null;}return null;}
-function addOptions(){return `<option value="">${t('d_add')}</option>${OPTS.map(([g,ids])=>`<optgroup label="${esc(groupLabel(g))}">${ids.map(id=>`<option value="${id}">${esc(optLabel(id))}</option>`).join('')}</optgroup>`).join('')}`;}
-function planOptions(sel){return `<option value="">${t('d_planPending')}</option>${PD.PLAN_ORDER.map(k=>`<option value="${k}" ${sel===k?'selected':''}>${esc(PD.PLANS[k][S.lang])}</option>`).join('')}`;}
-function treatmentsSection(items,e){
- const inCombo=e.parts.some(p=>BUNDLE_IDS.has(p.id));
- const priceOf=i=>{const it=items[i];if(!e.col)return '';const p=e.parts.find(x=>x.id===it.k&&(x.tooth||'')===(it.tooth||''));if(p&&p.amount!=null)return money(p.amount);return inCombo&&COMBO_KEYS.has(it.k)?t('d_inCombo'):'';};
- return `<div class="sec"><h3>${t('d_treat')}</h3>
-  ${items.length?`<ul class="tlist">${items.map((it,i)=>{const np=PD.ITEM[it.k]&&PD.ITEM[it.k].g==='nopay';return `<li class="${np?'np':''}"><span class="nm">${esc(it.k==='btw'?`${it.n} BW`:it.k==='pa'?'PA (periapical)':itemName(it.k))}</span>
-   ${TOOTH.has(it.k)?`<input type="text" class="tooth" id="tooth-${i}" data-f="tooth" data-i="${i}" value="${esc(it.tooth||'')}" placeholder="${t('d_toothPh')}" maxlength="3" aria-label="${esc(t('d_tooth'))}">`:''}
-   ${it.k==='pa'?`<span class="qty"><button type="button" data-action="pa" data-d="-1" data-i="${i}" aria-label="${t('less')}">−</button><b>${it.n||1}</b><button type="button" data-action="pa" data-d="1" data-i="${i}" aria-label="${t('more')}">+</button></span>`:''}
-   <span class="price">${priceOf(i)}</span>
-   <button type="button" class="rm" data-action="rm" data-i="${i}" aria-label="${esc(t('remove'))}">×</button></li>`;}).join('')}</ul>`:`<p class="help">${t('d_noTreat')}</p>`}
-  <select class="add" id="d-add" data-f="add" aria-label="${esc(t('d_add'))}">${addOptions()}</select></div>`;
-}
-function amountSection(e,items){
- if(!items.length)return '';
- const combo=e.parts.find(p=>BUNDLE_IDS.has(p.id));
- return `<div class="sec"><h3>${t('d_amount')}</h3>
-  ${e.col?`<div class="total"><span class="v">${money(e.total)}</span><span class="muted small">${esc(colName(e.col))}</span></div>
-  ${combo?`<div class="combo">${esc(t('d_combo',itemName(combo.id)))}</div>`:''}
-  <ul class="bd">${e.parts.map(p=>`<li><span>${esc(partLabel(p))}</span><span>${money(p.amount)}</span></li>`).join('')}</ul>`:`<p class="help">${t('d_noAmount')}</p>`}</div>`;
-}
-function alertsSection(e){
- const list=e.alerts.filter(a=>a!=='noIns');
- if(!list.length)return '';
- return `<div class="sec"><h3>${t('d_alerts')}</h3><ul class="alist">${list.map(a=>`<li class="${BLOCKING.has(a)?'':'warn'}">${esc(alertMsg(a,e))}${a==='dup'?` <button type="button" class="linkbtn small" data-action="dup-ok-cur">${t('keep')}</button>`:''}</li>`).join('')}</ul></div>`;
-}
-function renderDrawer(){
- const root=$('#drawer-root');
- if(!D){root.innerHTML='';return;}
- let head='',body='',foot='';
- if(D.type==='new'){
-  const dr=D.draft;const ex=findPatient(dr.name||'');const plan=ex&&!dr.planTouched?ex.plan:dr.plan;
-  const e=evalItems(dr.items,plan||null,null);
-  head=`<span class="av lg" style="background:var(--primary-soft);color:var(--primary)" aria-hidden="true">+</span><div class="t"><h2 id="d-title">${t('d_new')}</h2><div class="meta">${esc(fmtDate(dr.date))}</div></div>`;
-  body=`<div class="sec">
-   <div class="field"><label for="d-name">${t('d_patient')}</label><input type="text" id="d-name" data-f="d-name" list="dl-patients" autocomplete="off" placeholder="${esc(t('d_patientPh'))}" value="${esc(dr.name)}"></div>
-   <datalist id="dl-patients">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist>
-   <div class="row2"><div class="field"><label for="d-dentist">${t('d_dentist')}</label><select id="d-dentist" data-f="d-dentist">${S.dentists.map(d=>`<option value="${d.id}" ${dr.dentist===d.id?'selected':''}>${esc(d.name)}</option>`).join('')}</select></div>
-   <div class="field"><label for="d-day">${t('d_day')}</label><select id="d-day" data-f="d-day">${DAYS.map(d=>`<option value="${d}" ${dr.date===d?'selected':''}>${esc(fmtDate(d,{weekday:'short',day:'numeric',month:'short'}))}</option>`).join('')}</select></div></div>
-  </div>
-  <div class="sec"><div class="field"><label for="d-plan">${t('d_plan')}</label><select id="d-plan" data-f="d-plan">${planOptions(plan)}</select></div><p class="help">${plan?esc(t('d_tariff',colName(PD.PLANS[plan].col))):t('d_planHelp')}</p></div>
-  ${treatmentsSection(dr.items,e)}${amountSection(e,dr.items)}${alertsSection(e)}`;
-  foot=`<button type="button" class="btn sec" data-action="close">${t('d_close')}</button><button type="button" class="btn" data-action="save-new">${t('d_save')}</button>`;
- }else if(D.type==='visit'){
-  const v=visit(D.id);if(!v){D=null;root.innerHTML='';return;}
-  const p=pat(v.patient);const e=evalVisit(v);
-  head=`${avatar(p.name,true)}<div class="t"><h2 id="d-title">${esc(p.name)}</h2><div class="meta">${esc(fmtDate(v.date))} · ${esc(den(v.dentist).name)}</div><div style="margin-top:6px">${statusPill(e.status)}</div></div>`;
-  body=`<div class="sec"><div class="field"><label for="d-plan">${t('d_plan')}</label><select id="d-plan" data-f="v-plan">${planOptions(p.plan)}</select></div><p class="help">${p.plan?esc(t('d_tariff',colName(PD.PLANS[p.plan].col))):t('d_planHelp')}</p></div>
-  ${treatmentsSection(v.items,e)}${amountSection(e,v.items)}${alertsSection(e)}`;
-  foot=`<button type="button" class="linkbtn danger" data-action="del-visit">${t('d_delete')}</button><button type="button" class="btn" data-action="close">${t('d_done')}</button>`;
- }else if(D.type==='patient'){
-  const p=pat(D.id);if(!p){D=null;root.innerHTML='';return;}
-  const vs=weekVisits().filter(v=>v.patient===p.id).sort((a,b)=>a.date.localeCompare(b.date));
-  head=`${avatar(p.name,true)}<div class="t"><h2 id="d-title">${esc(p.name)}</h2><div class="meta">${p.plan?esc(planLong(p.plan)):t('s_noIns')}</div></div>`;
-  body=`<div class="sec"><div class="field"><label for="d-plan">${t('d_plan')}</label><select id="d-plan" data-f="p-plan">${planOptions(p.plan)}</select></div><p class="help">${p.plan?esc(t('d_tariff',colName(PD.PLANS[p.plan].col))):t('d_planHelp')}</p></div>
-  <div class="sec"><h3>${t('d_visits')}</h3>${vs.length?`<ul class="vlist">${vs.map(v=>{const e=evalVisit(v);return `<li><button type="button" data-action="open-visit" data-v="${v.id}"><span><span class="d">${esc(fmtDate(v.date,{weekday:'short',day:'numeric'}))}</span> · ${esc(den(v.dentist).name)}<br><span class="muted small">${esc(v.items.map(itemLabel).join(', '))}</span></span><span class="mono">${e.col?money(e.total):'—'}</span></button></li>`;}).join('')}</ul>`:`<p class="help">${t('d_noVisits')}</p>`}</div>`;
-  foot=`<span></span><button type="button" class="btn" data-action="close">${t('d_done')}</button>`;
- }
- root.innerHTML=`<div class="scrim" data-action="close"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title"><div class="dh">${head}<button type="button" class="xbtn" data-action="close" aria-label="${esc(t('d_close'))}">×</button></div><div class="db">${body}</div><div class="df">${foot}</div></aside>`;
-}
-function openDrawer(d,focusId){D=d;render();const el=focusId&&document.getElementById(focusId);(el||document.querySelector('.drawer select, .drawer input, .drawer button'))?.focus();}
-function refreshDrawer(focusId){save();renderShell();({today:renderToday,patients:renderPatients,payroll:renderPayroll,fees:renderFees})[S.page]();renderDrawer();const el=focusId&&document.getElementById(focusId);if(el)el.focus();}
-function visit(id){return S.visits.find(v=>v.id===id);}
-function addItemTo(items,id){
- let m;
- if((m=id.match(/^btw(\d)$/)))items.push({k:'btw',n:+m[1]});
- else if(id==='pa'){const pa=items.find(i=>i.k==='pa');if(pa)pa.n=(pa.n||1)+1;else items.push({k:'pa',n:1});}
- else items.push({k:id});
+/* ---------- fees ---------- */
+function feeRows(){const seen=new Set();return allCodes().filter(c=>{if(seen.has(c.code))return false;seen.add(c.code);return true;});}
+function feeKey(c){if(c.item==='crown')return 'crownprep';if(c.item==='implant')return 'implimp';return c.item;}
+function comboCodes(b){const codes=[{comp:'D0150',periodic:'D0120',limited:'D0140'}[b.exam]];if(b.pan)codes.push('D0330');if(b.btw)codes.push(b.btw===4?'D0274':'D0272');if(b.pa)codes.push(b.pa>1?`D0220 + ${b.pa-1}× D0230`:'D0220');if(b.fms)codes.push('D0210');if(b.rec)codes.push('D2920');return codes.join(' + ');}
+function renderFees(){
+ const cell=(key,col,label)=>{const v=S.fees[key]?S.fees[key][col]:null;if(Array.isArray(v))return `<td class="num" style="font-size:.84rem">${v.map(x=>x.toFixed(2)).join(' / ')}</td>`;return `<td class="num"><input type="number" min="0" step="0.01" data-f="fee" data-k="${key}" data-col="${col}" value="${v==null?'':v}" placeholder="—" aria-label="${esc(label+' · '+PD.COL_NAMES[col])}"></td>`;};
+ const f=S.form;
+ $('#main').innerHTML=`
+ <div class="bar"><h1 style="font-size:1.4rem">${t('feesTitle')}</h1><span class="muted">${t('feesIntro')}</span></div>
+ <div class="stack">
+ <section class="panel"><div class="ph"><div class="tools"><button type="button" class="btn sm" data-action="form-code">${t('addCode')}</button><button type="button" class="btn sm sec" data-action="form-plan">${t('addPlan')}</button></div>
+  <div class="tools"><label for="raise">${t('raise')}</label><input type="number" id="raise" min="0" max="50" step="0.5" value="2"> %<button type="button" class="btn sm sec" data-action="raise">${t('raiseBtn')}</button></div></div>
+  ${f&&f.type==='code'?`<div class="pb"><div class="form"><label>${t('f_code')}<input type="text" id="nc-code" placeholder="D0000"></label><label>${t('f_name')}<input type="text" id="nc-name"></label>${PD.COLS.map(c=>`<label>${esc(PD.COL_NAMES[c])}<input type="number" id="nc-${c}" min="0" step="0.01"></label>`).join('')}<div class="tools"><button type="button" class="btn sm" data-action="save-code">${t('f_save')}</button><button type="button" class="btn sm sec" data-action="form-close">${t('f_cancel')}</button></div></div></div>`:''}
+  ${f&&f.type==='plan'?`<div class="pb"><div class="form"><label>${t('planName')}<input type="text" id="np-name"></label><label>${t('planCol')}<select id="np-col">${PD.COLS.map(c=>`<option value="${c}">${esc(PD.COL_NAMES[c])}</option>`).join('')}</select></label><div class="tools"><button type="button" class="btn sm" data-action="save-plan">${t('f_save')}</button><button type="button" class="btn sm sec" data-action="form-close">${t('f_cancel')}</button></div></div></div>`:''}
+  <div class="tablewrap fees"><table class="plain"><thead><tr><th>${t('code')}</th><th>${t('treatment')}</th>${PD.COLS.map(c=>`<th class="num">${esc(PD.COL_NAMES[c])}</th>`).join('')}</tr></thead><tbody>
+  ${feeRows().map(c=>`<tr><td class="code">${esc(c.code)}</td><td style="min-width:200px">${esc(c[S.lang])}${c.stage?` <span class="muted" style="font-size:.8rem">(${t('prep')} / ${t('seat')})</span>`:''}</td>${PD.COLS.map(col=>cell(feeKey(c),col,c.code)).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <div class="pb"><p class="muted" style="font-size:.84rem">${t('insList')}${allPlans().map(p=>esc(p.name)+(S.customPlans.includes(p)?` (→ ${esc(colName(p.col))})`:'')).join(', ')}</p></div>
+ </section>
+ <section class="panel"><div class="ph"><h2>${t('combosTitle')}</h2><span class="muted" style="font-size:.86rem">${t('combosIntro')}</span></div><div class="pb"><ul class="combos">
+  ${PD.BUNDLES.map(b=>`<li><span class="codes">${esc(comboCodes(b))}</span><span>${esc(PD.ITEM[b.id][S.lang])}</span></li>`).join('')}
+ </ul>
+ <div class="tools"><span>${t('implantRule')}</span><span class="seg" role="group">${[0,1].map(i=>`<button type="button" data-action="implant" data-i="${i}" aria-pressed="${S.implantIdx===i}">${[508.4,406.4][i].toFixed(2)}</button>`).join('')}</span></div>
+ <div><p style="font-weight:700;margin-bottom:4px">${t('histTitle')}</p><p class="hist">${S.history.length?S.history.map(esc).join(' · '):t('noHist')}</p></div></div></section>
+ </div>`;
 }
 
 /* ---------- events ---------- */
 document.addEventListener('click',ev=>{
- const b=ev.target.closest('[data-action]');if(!b)return;
- const a=b.dataset.action;
+ const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
  if(a==='lang'){S.lang=b.dataset.lang;save();render();}
- else if(a==='page'){D=null;setPage(b.dataset.page);}
- else if(a==='reset'){const lang=S.lang;S=seed();S.lang=lang;D=null;save();render();toast(t('resetDone'));}
- else if(a==='view'){S.view=b.dataset.view;save();renderToday();}
- else if(a==='pview'){S.pview=b.dataset.view;save();renderPatients();}
- else if(a==='day'){S.date=b.dataset.d;save();renderToday();}
- else if(a==='new'){openDrawer({type:'new',draft:{name:'',dentist:S.dentist!=='all'?S.dentist:S.dentists[0].id,date:S.date,plan:null,planTouched:false,items:[]}},'d-name');}
- else if(a==='open-visit'){openDrawer({type:'visit',id:b.dataset.v},'d-add');}
- else if(a==='open-patient'){openDrawer({type:'patient',id:b.dataset.p},'d-plan');}
- else if(a==='close'){D=null;render();}
- else if(a==='rm'){const items=curItems();if(items){items.splice(+b.dataset.i,1);refreshDrawer('d-add');}}
- else if(a==='pa'){const items=curItems();if(items){const it=items[+b.dataset.i];it.n=Math.max(1,Math.min(18,(it.n||1)+(+b.dataset.d)));refreshDrawer(null);}}
- else if(a==='save-new'){
-  const dr=D.draft;const name=dr.name.trim();
-  if(!name){toast(t('d_needName'));$('#d-name')?.focus();return;}
-  if(!dr.items.length){toast(t('d_needTreat'));$('#d-add')?.focus();return;}
-  let p=findPatient(name);if(!p){p={id:'p'+(S.nextPat++),name,plan:null};S.patients.push(p);}
-  if(dr.planTouched||!p.plan)p.plan=dr.plan||p.plan||null;
-  const v={id:'v'+(S.nextVisit++),date:dr.date,dentist:dr.dentist,patient:p.id,items:dr.items};
-  S.visits.push(v);S.date=dr.date;S.view='all';D={type:'visit',id:v.id};save();render();toast(t('created',p.name));
- }
- else if(a==='del-visit'){S.visits=S.visits.filter(v=>v.id!==D.id);D=null;save();render();toast(t('deleted'));}
- else if(a==='dup-ok'){const v=visit(b.dataset.v);if(v)v.dupOk=true;save();render();}
- else if(a==='dup-ok-cur'){const v=D&&visit(D.id);if(v)v.dupOk=true;refreshDrawer(null);}
- else if(a==='toggle'){S.open[b.dataset.d]=!S.open[b.dataset.d];save();renderPayroll();}
- else if(a==='approve'){const r=dentistRows().find(x=>x.d.id===b.dataset.d);if(r&&!r.block){S.approved[r.d.id]=r.pay;save();render();}}
- else if(a==='unapprove'){delete S.approved[b.dataset.d];save();render();}
+ else if(a==='page')setPage(b.dataset.page);
+ else if(a==='reset'){const lang=S.lang,page=S.page;S=seed();S.lang=lang;S.page=page;SAVED_AT=null;save();render();toast(t('resetDone'));}
+ else if(a==='day'){S.date=b.dataset.d;S.sel=null;SAVED_AT=null;save();renderDentist();}
+ else if(a==='sel'){S.sel=b.dataset.v;SAVED_AT=null;save();renderDentist();if(matchMedia('(max-width:860px)').matches)$('#ppanel').scrollIntoView({block:'start'});}
+ else if(a==='quick')addCode(b.dataset.c);
+ else if(a==='add-code'){addCode($('#code-in').value);}
+ else if(a==='rm'){const v=curVisit();v.codes.splice(+b.dataset.i,1);v.saved=false;SAVED_AT=null;save();renderShell();refreshPanel(null);}
+ else if(a==='stage'){const v=curVisit();v.codes[+b.dataset.i].stage=b.dataset.s;v.saved=false;save();refreshPanel(null);}
+ else if(a==='save'){const v=curVisit();v.saved=true;SAVED_AT=v.id;const name=pat(v.patient).name;const next=dayVisits().find(x=>!x.saved&&x.id!==v.id);save();renderShell();renderDentist();toast(t('savedFor',name));if(next){setTimeout(()=>{if(S.sel===v.id&&S.page==='dentist'){S.sel=next.id;SAVED_AT=null;save();renderDentist();}},1400);}}
+ else if(a==='toggle'){S.open[b.dataset.d]=!S.open[b.dataset.d];save();renderSummary();}
+ else if(a==='adp'){const lines=['Dentist\tPay period\tAmount'];S.dentists.forEach(d=>{const tot=sum(S.visits.filter(v=>v.dentist===d.id&&v.codes.length).map(v=>evalVisit(v).total||0));lines.push(`${d.name}\t2026-10-12 to 2026-10-23\t${tot.toFixed(2)}`);});const ok=()=>toast(t('copied'));try{navigator.clipboard.writeText(lines.join('\n')).then(ok,ok);}catch(e){ok();}}
+ else if(a==='form-code'){S.form={type:'code'};renderFees();$('#nc-code')?.focus();}
+ else if(a==='form-plan'){S.form={type:'plan'};renderFees();$('#np-name')?.focus();}
+ else if(a==='form-close'){S.form=null;renderFees();}
+ else if(a==='save-code'){const code=$('#nc-code').value.trim().toUpperCase(),name=$('#nc-name').value.trim();if(!/^D\d{4}$/.test(code)||!name||codeInfo(code)){toast(t('badCode'));return;}const key='x_'+code;S.fees[key]={};PD.COLS.forEach(c=>{const v=$('#nc-'+c).value;S.fees[key][c]=v===''?null:+v;});S.customCodes.push({code,item:key,en:name,es:name,stage:false});S.form=null;save();renderFees();toast(t('codeAdded',code));}
+ else if(a==='save-plan'){const name=$('#np-name').value.trim();if(!name)return;S.customPlans.push({id:'cp'+(S.customPlans.length+1),name,col:$('#np-col').value});S.form=null;save();renderFees();toast(t('planAdded',name));}
+ else if(a==='raise'){const p=+$('#raise').value;if(!(p>0))return;const f=1+p/100;Object.values(S.fees).forEach(row=>Object.keys(row).forEach(c=>{const v=row[c];if(Array.isArray(v))row[c]=v.map(x=>Math.round(x*f*100)/100);else if(typeof v==='number'&&v>0)row[c]=Math.round(v*f*100)/100;}));S.history.unshift(`+${p}% · ${new Date().toLocaleDateString(t('locale'))}`);save();render();toast(t('raised',p));}
  else if(a==='implant'){S.implantIdx=+b.dataset.i;save();render();toast(t('saved'));}
-});
-document.addEventListener('keydown',ev=>{
- if(ev.key==='Escape'&&D){D=null;render();return;}
- const tr=ev.target.closest&&ev.target.closest('tr.rec');
- if(tr&&(ev.key==='Enter'||ev.key===' ')&&ev.target===tr){ev.preventDefault();tr.click();}
- if(ev.key==='Enter'&&ev.target.dataset&&(ev.target.dataset.f==='tooth'||ev.target.dataset.f==='d-name')){ev.preventDefault();ev.target.blur();}
-});
-document.addEventListener('input',ev=>{
- const el=ev.target;
- if(el.id==='q'){S.q=el.value;const pos=el.selectionStart;(S.page==='patients'?renderPatients:renderToday)();const q=$('#q');if(q){q.focus();q.setSelectionRange(pos,pos);}}
 });
 document.addEventListener('change',ev=>{
  const el=ev.target,f=el.dataset.f;
- if(f==='dentist'){S.dentist=el.value;save();renderToday();}
- else if(f==='add'){const items=curItems();if(items&&el.value){const id=el.value;addItemTo(items,id);refreshDrawer(TOOTH.has(id)?`tooth-${items.length-1}`:'d-add');}}
- else if(f==='tooth'){const items=curItems();if(!items)return;const it=items[+el.dataset.i];const tv=validTooth(el.value);if(tv===null){toast(t('badTooth'));el.value=it.tooth||'';return;}if(tv)it.tooth=tv;else delete it.tooth;refreshDrawer('d-add');}
- else if(f==='d-name'){D.draft.name=el.value;refreshDrawer('d-plan');}
- else if(f==='d-dentist'){D.draft.dentist=el.value;}
- else if(f==='d-day'){D.draft.date=el.value;refreshDrawer(null);}
- else if(f==='d-plan'){D.draft.plan=el.value||null;D.draft.planTouched=true;refreshDrawer('d-add');}
- else if(f==='v-plan'){const v=visit(D.id);const p=pat(v.patient);p.plan=el.value||null;refreshDrawer('d-add');toast(t('saved'));}
- else if(f==='p-plan'){const p=pat(D.id);p.plan=el.value||null;refreshDrawer('d-plan');toast(t('saved'));}
- else if(f==='fee'){const v=el.value.trim();S.fees[el.dataset.id][el.dataset.col]=v===''?null:Math.max(0,+v);save();renderShell();toast(t('saved'));}
+ if(f==='dentist'){S.dentist=el.value;S.sel=null;SAVED_AT=null;save();renderDentist();}
+ else if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.codes[+el.dataset.i].tooth=s;else delete v.codes[+el.dataset.i].tooth;v.saved=false;save();}
+ else if(f==='fee'){const v=el.value.trim();S.fees[el.dataset.k][el.dataset.col]=v===''?null:Math.max(0,+v);save();renderShell();toast(t('saved'));}
+ else if(el.id==='walkin'){const name=el.value.trim();const p=S.patients.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!p)return;let v=S.visits.find(x=>x.dentist===S.dentist&&x.date===S.date&&x.patient===p.id);if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,time:'—',codes:[],saved:false};S.visits.push(v);}S.sel=v.id;save();renderDentist();}
 });
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='code-in'){ev.preventDefault();addCode(ev.target.value);}});
 
-const h=(location.hash||'').slice(1);
-if(PAGES.includes(h))S.page=h;
+const h=(location.hash||'').slice(1);if(PAGES.includes(h))S.page=h;
 render();
 })();
 </script>
