@@ -122,6 +122,11 @@ main{padding-block:4px 56px}
 .saverow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .saved{color:var(--ok);font-weight:700}
 .empty{color:var(--muted);padding:6px 0}
+.addp{padding:0 8px 10px}
+.addpbtn{width:100%;border-style:dashed}
+.addform{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--sunk);border-radius:12px}
+.addform label{font-weight:700;font-size:.92rem}
+.addform input{width:100%}
 .warnbox{background:var(--bad-soft);color:var(--bad);border-radius:10px;padding:10px 12px;font-size:.9rem}
 
 /* summary */
@@ -212,7 +217,7 @@ const PLAN_FOR_COL={medicaid:'mc_adult',delta:'delta',guardian:'guardian',privat
 const T={
 en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Prototype by Rianex. Fees from your fee table; patients, dentists and the Dentrix link are simulated.',reset:'Reset sample data',resetDone:'Sample data restored',locale:'en-US',
  tab_dentist:'My patients',tab_summary:'Summary',tab_fees:'Fees',
- iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',walkin:'+ Patient without appointment',noAppt:'Walk-in',walkinPh:'Patient without appointment: search Dentrix…',
+ iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',noAppt:'Walk-in',addPatient:'+ Add patient',npLabel:'Patient name',npPh:'Last, First (searches Dentrix)',npHelp:'If Dentrix does not have them yet, they are added without insurance and Javier sees it in the summary.',npAdded:n=>`${n} added to today`,npNeed:'Type the patient name',
  done:'Done',check:'Check',todo:'To do',noInsBadge:'No insurance',
  pick:'Pick a patient on the left.',insFrom:'Insurance (from Dentrix):',insMissing:'Dentrix has no insurance for this patient. Javier will see it in the summary.',
  what:'What did you do?',codePh:'Type a code or a name, e.g. D0120 or periodic',add:'Add',common:'Most used',nothing:'Nothing added yet. Tap a button or type a code.',
@@ -227,7 +232,7 @@ en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'
  insList:'Insurance plans: ',combosTitle:'Combos from your table',combosIntro:'When these codes come in the same visit, the combo price is used.',histTitle:'Price changes',noHist:'No changes yet.',implantRule:'Implant crown price',saved:'Saved'},
 es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Prototipo de Rianex. Precios de vuestra tabla; pacientes, dentistas y la conexión con Dentrix son simulados.',reset:'Restablecer ejemplo',resetDone:'Datos de ejemplo restablecidos',locale:'es-ES',
  tab_dentist:'Mis pacientes',tab_summary:'Resumen',tab_fees:'Precios',
- iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',walkin:'+ Paciente sin cita',noAppt:'Sin cita',walkinPh:'Paciente sin cita: buscar en Dentrix…',
+ iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',noAppt:'Sin cita',addPatient:'+ Añadir paciente',npLabel:'Nombre del paciente',npPh:'Apellido, Nombre (busca en Dentrix)',npHelp:'Si Dentrix aún no lo tiene, se añade sin seguro y Javier lo ve en el resumen.',npAdded:n=>`${n} añadido al día`,npNeed:'Escribe el nombre del paciente',
  done:'Hecho',check:'Revisar',todo:'Pendiente',noInsBadge:'Sin seguro',
  pick:'Elige un paciente a la izquierda.',insFrom:'Seguro (de Dentrix):',insMissing:'Dentrix no tiene seguro para este paciente. Javier lo verá en el resumen.',
  what:'¿Qué le hiciste?',codePh:'Escribe un código o un nombre, p. ej. D0120 o periódico',add:'Añadir',common:'Los más usados',nothing:'Todavía nada. Pulsa un botón o escribe un código.',
@@ -259,13 +264,14 @@ function seed(){
  V(20,'d2','p11',0,[C('D0150'),C('D0210')]);V(20,'d2','p5',1,[C('D0150'),C('D1110')]);V(21,'d2','p14',0,[C('D6065',{tooth:'30',stage:'prep'})]);V(21,'d2','p18',1,[C('D0120'),C('D0274'),C('D1110')]);
  V(19,'d3','p9',0,[C('D2393',{tooth:'15'}),C('D1110')]);V(20,'d3','p12',0,[C('D2740',{tooth:'11',stage:'prep'}),C('D2740',{tooth:'15',stage:'prep'})]);V(21,'d3','p19',0,[C('D0171')]);V(21,'d3','p20',1,[C('D4341')]);
  V(19,'d4','p10',0,[C('D7140',{tooth:'1'})]);V(19,'d4','p6',1,[C('D3330',{tooth:'19'})]);V(20,'d4','p7',0,[C('D0120'),C('D1110')]);V(21,'d4','p11',0,[C('D2393',{tooth:'3'})]);V(21,'d4','p15',1,[C('D0145'),C('D1120')]);
- return {v:7,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),customCodes:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,form:null};
+ return {v:7,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),customCodes:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,nextPat:patients.length+1,form:null};
 }
 let S;
 try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===7&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
-let SAVED_AT=null;
+let SAVED_AT=null,ADDING=false;
+if(!S.nextPat)S.nextPat=S.patients.length+1;
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -338,7 +344,7 @@ function renderDentist(){
  <div class="dgrid">
   <section class="panel"><div class="ph"><h2>${t('today')}</h2><span class="muted" style="font-size:.84rem">${t('fromDentrix')}</span></div>
    <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const e=evalVisit(v);return `<li><button type="button" class="pbtn" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="time">${esc(v.time||t('noAppt'))}</span><span class="nm"><b>${esc(p.name)}</b><span>${pl?esc(pl.name):`<span style="color:var(--bad)">${t('noInsBadge')}</span>`}</span></span>${v.saved&&v.codes.length?`<span class="badge ${e.blocking?'bad':'done'}">${e.blocking?t('check'):t('done')}</span>`:`<span class="badge todo">${t('todo')}</span>`}</button></li>`;}).join('')}</ul>
-   <div style="padding:0 8px 10px"><input type="text" id="walkin" list="dl-pat" placeholder="${esc(t('walkinPh'))}" style="width:100%" aria-label="${esc(t('walkin'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist></div>
+   <div class="addp">${ADDING?`<div class="addform"><label for="np-in">${t('npLabel')}</label><input type="text" id="np-in" list="dl-pat" autocomplete="off" placeholder="${esc(t('npPh'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><div class="tools"><button type="button" class="btn sec sm" data-action="np-save">${t('add')}</button><button type="button" class="linkbtn" data-action="np-cancel">${t('f_cancel')}</button></div><p class="muted" style="font-size:.8rem">${t('npHelp')}</p></div>`:`<button type="button" class="btn sec addpbtn" data-action="np-open">${t('addPatient')}</button>`}</div>
   </section>
   <section class="panel" id="ppanel">${patientPanel()}</section>
  </div>`;
@@ -360,6 +366,16 @@ function patientPanel(){
 }
 function refreshPanel(focusId){$('#ppanel').innerHTML=patientPanel();if(focusId){const el=document.getElementById(focusId);if(el)el.focus();}}
 function curVisit(){return S.visits.find(x=>x.id===S.sel);}
+function addPatient(){
+ const el=$('#np-in');const name=(el?el.value:'').trim();
+ if(!name){toast(t('npNeed'));el&&el.focus();return;}
+ let p=S.patients.find(x=>x.name.toLowerCase()===name.toLowerCase());
+ if(!p){p={id:'p'+(S.nextPat++),name,plan:null};S.patients.push(p);}
+ let v=S.visits.find(x=>x.dentist===S.dentist&&x.date===S.date&&x.patient===p.id);
+ if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,time:'',codes:[],saved:false};S.visits.push(v);}
+ S.sel=v.id;ADDING=false;SAVED_AT=null;save();renderShell();renderDentist();toast(t('npAdded',p.name));
+ const ci=$('#code-in');if(ci)ci.focus();
+}
 function addCode(raw){
  const v=curVisit();if(!v)return;
  const code=String(raw||'').trim().split(/[\s·]/)[0].toUpperCase();
@@ -429,6 +445,9 @@ document.addEventListener('click',ev=>{
  else if(a==='reset'){const lang=S.lang,page=S.page;S=seed();S.lang=lang;S.page=page;SAVED_AT=null;save();render();toast(t('resetDone'));}
  else if(a==='day'){S.date=b.dataset.d;S.sel=null;SAVED_AT=null;save();renderDentist();}
  else if(a==='sel'){S.sel=b.dataset.v;SAVED_AT=null;save();renderDentist();if(matchMedia('(max-width:860px)').matches)$('#ppanel').scrollIntoView({block:'start'});}
+ else if(a==='np-open'){ADDING=true;renderDentist();$('#np-in')?.focus();}
+ else if(a==='np-cancel'){ADDING=false;renderDentist();}
+ else if(a==='np-save')addPatient();
  else if(a==='quick')addCode(b.dataset.c);
  else if(a==='add-code'){addCode($('#code-in').value);}
  else if(a==='rm'){const v=curVisit();v.codes.splice(+b.dataset.i,1);v.saved=false;SAVED_AT=null;save();renderShell();refreshPanel(null);}
@@ -449,9 +468,8 @@ document.addEventListener('change',ev=>{
  if(f==='dentist'){S.dentist=el.value;S.sel=null;SAVED_AT=null;save();renderDentist();}
  else if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.codes[+el.dataset.i].tooth=s;else delete v.codes[+el.dataset.i].tooth;v.saved=false;save();}
  else if(f==='fee'){const v=el.value.trim();S.fees[el.dataset.k][el.dataset.col]=v===''?null:Math.max(0,+v);save();renderShell();toast(t('saved'));}
- else if(el.id==='walkin'){const name=el.value.trim();const p=S.patients.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!p)return;let v=S.visits.find(x=>x.dentist===S.dentist&&x.date===S.date&&x.patient===p.id);if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,time:'',codes:[],saved:false};S.visits.push(v);}S.sel=v.id;save();renderDentist();}
 });
-document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='code-in'){ev.preventDefault();addCode(ev.target.value);}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='code-in'){ev.preventDefault();addCode(ev.target.value);}else if(ev.key==='Enter'&&ev.target.id==='np-in'){ev.preventDefault();addPatient();}else if(ev.key==='Escape'&&ADDING){ADDING=false;renderDentist();}});
 
 const h=(location.hash||'').slice(1);if(PAGES.includes(h))S.page=h;
 render();
