@@ -219,7 +219,7 @@ const T={
 en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Fees from your fee table. Patients, dentists and the Dentrix link are simulated.',reset:'Reset sample data',resetDone:'Sample data restored',locale:'en-US',
  tab_dentist:'My patients',tab_summary:'Summary',tab_fees:'Fees',
  iam:'I am',today:'Patients',fromDentrix:'From the Dentrix schedule',walkin:'+ Patient without appointment',walkinPh:'Patient without appointment: search Dentrix…',
- done:'Done',todo:'To do',noInsBadge:'No insurance',
+ done:'Done',check:'Check',todo:'To do',noInsBadge:'No insurance',
  pick:'Pick a patient on the left.',insFrom:'Insurance (from Dentrix):',insMissing:'Dentrix has no insurance for this patient. Javier will see it in the summary.',
  what:'What did you do?',codePh:'Type a code or a name, e.g. D0120 or periodic',add:'Add',common:'Most used',nothing:'Nothing added yet. Tap a button or type a code.',
  tooth:'Tooth',prep:'Prep',seat:'Delivery',remove:'Remove',save:'Save',savedMsg:'Saved',savedFor:n=>`Saved for ${n}`,unknownCode:'That code is not in the list. Ask Javier to add it under Fees.',
@@ -234,7 +234,7 @@ en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'
 es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Precios de vuestra tabla. Pacientes, dentistas y la conexión con Dentrix son simulados.',reset:'Restablecer ejemplo',resetDone:'Datos de ejemplo restablecidos',locale:'es-ES',
  tab_dentist:'Mis pacientes',tab_summary:'Resumen',tab_fees:'Precios',
  iam:'Soy',today:'Pacientes',fromDentrix:'De la agenda de Dentrix',walkin:'+ Paciente sin cita',walkinPh:'Paciente sin cita: buscar en Dentrix…',
- done:'Hecho',todo:'Pendiente',noInsBadge:'Sin seguro',
+ done:'Hecho',check:'Revisar',todo:'Pendiente',noInsBadge:'Sin seguro',
  pick:'Elige un paciente a la izquierda.',insFrom:'Seguro (de Dentrix):',insMissing:'Dentrix no tiene seguro para este paciente. Javier lo verá en el resumen.',
  what:'¿Qué le hiciste?',codePh:'Escribe un código o un nombre, p. ej. D0120 o periódico',add:'Añadir',common:'Los más usados',nothing:'Todavía nada. Pulsa un botón o escribe un código.',
  tooth:'Diente',prep:'Preparación',seat:'Entrega',remove:'Quitar',save:'Guardar',savedMsg:'Guardado',savedFor:n=>`Guardado para ${n}`,unknownCode:'Ese código no está en la lista. Pídele a Javier que lo añada en Precios.',
@@ -343,7 +343,7 @@ function renderDentist(){
  </div>
  <div class="dgrid">
   <section class="panel"><div class="ph"><h2>${t('today')}</h2><span class="muted" style="font-size:.84rem">${t('fromDentrix')}</span></div>
-   <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const e=evalVisit(v);return `<li><button type="button" class="pbtn" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="time">${esc(v.time)}</span><span class="nm"><b>${esc(p.name)}</b><span>${pl?esc(pl.name):`<span style="color:var(--bad)">${t('noInsBadge')}</span>`}</span></span>${v.saved&&v.codes.length?`<span class="badge ${e.blocking?'bad':'done'}">${t('done')}</span>`:`<span class="badge todo">${t('todo')}</span>`}</button></li>`;}).join('')}</ul>
+   <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const e=evalVisit(v);return `<li><button type="button" class="pbtn" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="time">${esc(v.time)}</span><span class="nm"><b>${esc(p.name)}</b><span>${pl?esc(pl.name):`<span style="color:var(--bad)">${t('noInsBadge')}</span>`}</span></span>${v.saved&&v.codes.length?`<span class="badge ${e.blocking?'bad':'done'}">${e.blocking?t('check'):t('done')}</span>`:`<span class="badge todo">${t('todo')}</span>`}</button></li>`;}).join('')}</ul>
    <div style="padding:0 8px 10px"><input type="text" id="walkin" list="dl-pat" placeholder="${esc(t('walkinPh'))}" style="width:100%" aria-label="${esc(t('walkin'))}"><datalist id="dl-pat">${S.patients.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist></div>
   </section>
   <section class="panel" id="ppanel">${patientPanel()}</section>
