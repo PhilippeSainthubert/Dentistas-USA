@@ -198,14 +198,14 @@ main{padding-block:16px 64px}
 .tablewrap{overflow-x:auto}
 table.t{width:100%;border-collapse:collapse;font-size:13.5px}
 .t th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
-.t th.num{text-align:right}
+.t th.num{text-align:right;font-family:var(--font)}
 .t td{padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
 .t tbody tr:last-child td{border-bottom:0}
 .t tfoot td{border-top:1px solid var(--line);border-bottom:0;font-weight:600}
 .exp{border:0;background:none;display:inline-flex;align-items:center;gap:8px;padding:0;font-weight:500}
 .exp .i{color:var(--muted);transition:transform .15s}
 .exp[aria-expanded="true"] .i{transform:rotate(90deg)}
-.t tr.detail td{background:var(--subtle);padding:0}
+.t > tbody > tr.detail > td{background:var(--subtle);padding:0}
 .inner{width:100%;border-collapse:collapse;font-size:13px}
 .inner td{padding:8px 16px;border-bottom:1px solid var(--line)}
 .inner tr:last-child td{border-bottom:0}
@@ -224,7 +224,7 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}
 .raise input{width:64px;height:30px;text-align:right;font-family:var(--mono)}
 table.fees{width:100%;border-collapse:collapse;font-size:13px}
 .fees thead th{position:sticky;top:0;background:var(--surface);z-index:1;font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-.fees thead th.num{text-align:right;padding-right:12px}
+.fees thead th.num{text-align:right;padding-right:16px;font-family:var(--font)}
 .fees td{padding:2px 8px;border-bottom:1px solid var(--line);height:36px;vertical-align:middle}
 .fees td.code{font-family:var(--mono);font-size:12px;color:var(--muted);padding-left:16px;white-space:nowrap}
 .fees td.nm{min-width:240px}
@@ -418,6 +418,8 @@ function t(k,...a){const v=T[S.lang][k];return typeof v==='function'?v(...a):(v?
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const sum=a=>a.reduce((x,y)=>x+y,0);
 const money=v=>{if(v==null)return '—';if(S.lang==='es'){const [i,d]=v.toFixed(2).split('.');return (i.length>4?i.replace(/\B(?=(\d{3})+(?!\d))/g,' '):i)+','+d+' $';}return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);};
+const fmtFee=v=>v==null||v===''?'':(S.lang==='es'?Number(v).toFixed(2).replace('.',','):Number(v).toFixed(2));
+const parseFee=s=>{const x=String(s||'').trim().replace(/\s/g,'').replace(',','.');if(x==='')return null;const n=Number(x);return isNaN(n)?undefined:Math.round(Math.max(0,n)*100)/100;};
 const fmtDate=(iso,o)=>new Date(iso+'T12:00:00').toLocaleDateString(t('locale'),o||{weekday:'short',month:'short',day:'numeric'});
 const pat=id=>S.patients.find(p=>p.id===id);
 const initials=name=>{const [l,f]=String(name).split(',').map(x=>(x||'').trim());return ((f||'')[0]||'')+((l||'')[0]||'');};
@@ -465,7 +467,7 @@ function renderShell(){
  document.title=S.lang==='es'?'Producción Dental Delaware':'Dental Production Delaware';
  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
  $('#lang-en').setAttribute('aria-pressed',S.lang==='en');$('#lang-es').setAttribute('aria-pressed',S.lang==='es');
- const alerts=sum(S.visits.filter(v=>v.items.length&&v.saved).map(v=>evalVisit(v).blocking));
+ const alerts=sum(S.visits.filter(v=>v.items.length&&v.saved).map(v=>evalVisit(v).alerts.length));
  $('#tabs').innerHTML=PAGES.map(k=>`<button type="button" class="tab" role="tab" data-action="page" data-page="${k}" aria-selected="${S.page===k}">${t('tab_'+k)}${k==='summary'&&alerts?`<span class="cnt">${alerts}</span>`:''}</button>`).join('');
 }
 function render(){renderShell();({dentist:renderDentist,summary:renderSummary,fees:renderFees})[S.page]();renderDialog();}
@@ -535,7 +537,7 @@ function refreshPop(key){
 function runOpt(i){
  const o=OPTS[i];if(!o)return;
  if(o.kind==='treat'){const v=curVisit();if(!v)return;const e=entry(o.id);v.items.push({id:o.id});v.saved=false;DIRTY.add(v.id);save();OPEN=null;$('#treat-q').value='';renderShell();renderDentist();if(needsTooth(e))focusId('tooth-'+(v.items.length-1));else focusId('treat-q');}
- else if(o.kind==='create'){const q=$('#treat-q').value.trim();OPEN=null;openTreatDialog(q,'visit');}
+ else if(o.kind==='create'){const q=$('#treat-q').value.trim();OPEN=null;refreshPop('treat');openTreatDialog(q,'visit');}
  else if(o.kind==='pat'){addPatientVisit(pat(o.id));}
  else if(o.kind==='newpat'){const p={id:'p'+(S.nextPat++),name:o.name,plan:null,src:null};S.patients.push(p);addPatientVisit(p);}
  else if(o.kind==='fam'){$('#dlg-family').value=o.val;OPEN=null;refreshPop('family');updateDialog();focusId('dlg-variant');}
@@ -623,9 +625,9 @@ function renderFees(){
   if(cid!==lastCat){lastCat=cid;body+=`<tr class="grp"><td colspan="${2+PD.COLS.length}">${esc(c?c[S.lang]:'')}</td></tr>`;}
   const first=seen[e.item];if(!first)seen[e.item]=e.code;
   const cells=PD.COLS.map(col=>{const v=S.fees[e.item]?S.fees[e.item][col]:null;
-   if(first)return `<td class="num"><span class="ro" title="${esc(t('sameAs',first))}">${v==null?'—':Array.isArray(v)?v.map(x=>x.toFixed(2)).join('/'):Number(v).toFixed(2)}</span></td>`;
-   if(Array.isArray(v))return `<td class="num"><span class="ro">${v.map(x=>x.toFixed(2)).join(' / ')}</span></td>`;
-   return `<td class="num"><input type="number" min="0" step="0.01" data-f="fee" data-k="${esc(e.item)}" data-col="${col}" value="${v==null?'':v}" placeholder="—" aria-label="${esc(e.code+' '+nameText(e)+' · '+PD.COL_NAMES[col])}"></td>`;}).join('');
+   if(first)return `<td class="num"><span class="ro" title="${esc(t('sameAs',first))}">${v==null?'—':Array.isArray(v)?v.map(fmtFee).join(' / '):fmtFee(v)}</span></td>`;
+   if(Array.isArray(v))return `<td class="num"><span class="ro">${v.map(fmtFee).join(' / ')}</span></td>`;
+   return `<td class="num"><input type="text" inputmode="decimal" data-f="fee" data-k="${esc(e.item)}" data-col="${col}" value="${fmtFee(v)}" placeholder="—" aria-label="${esc(e.code+' '+nameText(e)+' · '+PD.COL_NAMES[col])}"></td>`;}).join('');
   body+=`<tr><td class="code">${esc(e.code)}</td><td class="nm">${nameHTML(e)}${e.custom?`<span class="newtag">${t('newTag')}</span>`:''}</td>${cells}</tr>`;
  });
  const comboCodes=b=>{const c=[{comp:'D0150',periodic:'D0120',limited:'D0140'}[b.exam]];if(b.pan)c.push('D0330');if(b.btw)c.push(b.btw===4?'D0274':'D0272');if(b.pa)c.push(b.pa>1?`D0220 + ${b.pa-1}× D0230`:'D0220');if(b.fms)c.push('D0210');if(b.rec)c.push('D2920');return c.join(' + ');};
@@ -662,7 +664,7 @@ function renderDialog(){
     <div class="row2"><div class="f"><label for="dlg-variant">${t('f_variant')} <span class="muted">· ${t('f_optional')}</span></label><input type="text" id="dlg-variant" class="input" placeholder="${esc(t('f_variantPh'))}" value="${esc(DIALOG.variant)}" autocomplete="off"></div>
      <div class="f"><label for="dlg-detail">${t('f_detail')} <span class="muted">· ${t('f_optional')}</span></label><input type="text" id="dlg-detail" class="input" placeholder="${esc(t('f_detailPh'))}" value="${esc(DIALOG.detail)}" autocomplete="off"></div></div>
     <div class="f"><label>${t('f_preview')}</label><div class="preview" id="dlg-preview"></div></div>
-    <div class="f"><label>${t('f_fees')}</label><div class="row3">${PD.COLS.map(c=>`<div class="f fee-in"><label for="dlg-fee-${c}">${esc(PD.COL_NAMES[c])}</label><input type="number" id="dlg-fee-${c}" class="input" min="0" step="0.01" placeholder="—"></div>`).join('')}</div><span class="help">${t('f_feesHelp')}</span></div>
+    <div class="f"><label>${t('f_fees')}</label><div class="row3">${PD.COLS.map(c=>`<div class="f fee-in"><label for="dlg-fee-${c}">${esc(PD.COL_NAMES[c])}</label><input type="text" inputmode="decimal" id="dlg-fee-${c}" class="input" placeholder="—"></div>`).join('')}</div><span class="help">${t('f_feesHelp')}</span></div>
    </div>
    <div class="dft"><button type="button" class="btn outline" data-action="dlg-close">${t('f_cancel')}</button><button type="button" class="btn primary" data-action="dlg-create">${t('f_create')}</button></div></div>`;
   updateDialog();
@@ -693,7 +695,7 @@ function createTreatment(){
  if(bad)return;
  const nm=[v.family,v.variant,v.detail].filter(Boolean);
  const key='x_'+v.code;
- S.fees[key]={};PD.COLS.forEach(c=>{const x=$('#dlg-fee-'+c).value;S.fees[key][c]=x===''?null:Math.max(0,+x);});
+ S.fees[key]={};PD.COLS.forEach(c=>{const x=parseFee($('#dlg-fee-'+c).value);S.fees[key][c]=x===undefined?null:x;});
  const e={id:v.code+'-'+key,code:v.code,item:key,en:nm,es:nm,custom:true};
  S.custom.push(e);
  const from=DIALOG.from;DIALOG=null;OPEN=null;
@@ -761,7 +763,7 @@ document.addEventListener('keydown',ev=>{
 document.addEventListener('change',ev=>{
  const el=ev.target,f=el.dataset.f;
  if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.items[+el.dataset.i].tooth=s;else delete v.items[+el.dataset.i].tooth;v.saved=false;DIRTY.add(v.id);save();const st=$('.dfoot .state');if(st){st.className='state';st.textContent=t('unsaved');}}
- else if(f==='fee'){const v=el.value.trim();S.fees[el.dataset.k][el.dataset.col]=v===''?null:Math.max(0,+v);save();renderShell();toast(t('savedFee'));}
+ else if(f==='fee'){const v=parseFee(el.value);const row=S.fees[el.dataset.k];if(v===undefined){el.value=fmtFee(row[el.dataset.col]);return;}row[el.dataset.col]=v;el.value=fmtFee(v);save();renderShell();toast(t('savedFee'));}
 });
 
 const h=(location.hash||'').slice(1);if(PAGES.includes(h))S.page=h;
