@@ -14,7 +14,7 @@ var PD = (function () {
     delta: { es: "Delta Dental", en: "Delta Dental", col: "delta" },
     guardian: { es: "Guardian", en: "Guardian", col: "guardian" },
     va: { es: "VA", en: "VA", col: "va" },
-    noins: { es: "Sin seguro", en: "No insurance", col: "private" },
+    noins: { es: "Privado / deal (sin seguro)", en: "Private / deal (no insurance)", col: "private" },
     unum: { es: "UNUM", en: "UNUM", col: "nin" },
     amerihealth: { es: "Amerihealth (sin Medicaid)", en: "Amerihealth (non-Medicaid)", col: "nin" },
     other: { es: "Otro seguro", en: "Other insurance", col: "nin" }
