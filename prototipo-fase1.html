@@ -141,7 +141,7 @@ main{padding-block:16px 64px}
 .dgrid{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:840px){.dgrid{grid-template-columns:minmax(0,1fr)}}
 .plist{list-style:none;margin:0;padding:4px}
-.prow{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:9px 10px;border-radius:8px}
+.prow{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:9px 10px;border-radius:8px}
 .prow:hover{background:var(--hover)}
 .prow[aria-current="true"]{background:var(--subtle);box-shadow:inset 2px 0 0 var(--ink)}
 .prow .tm{font-family:var(--mono);font-size:12px;color:var(--muted)}
@@ -168,6 +168,14 @@ main{padding-block:16px 64px}
 .trow .tooth:focus{outline:none;box-shadow:0 0 0 3px var(--ring);border-color:var(--line-2)}
 .trow .rm{border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:500;height:28px;padding:0 8px;border-radius:6px}
 .trow .rm:hover{background:var(--bad-soft);color:var(--bad)}
+.quick{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.chip{height:28px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.chip:hover{background:var(--hover);color:var(--ink)}
+.dmeta b{font-weight:500;color:var(--ink)}
+.acts .state{margin-right:4px}
+.tag.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
+.tags{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+@media (max-width:520px){.trow .nm{white-space:normal}}
 .empty{padding:22px 12px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:10px}
 .dfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-top:1px solid var(--line)}
 .state{font-size:12.5px;color:var(--muted)}
@@ -279,10 +287,12 @@ table.fees{width:100%;border-collapse:collapse;font-size:13px}
 <script>
 (function(){
 "use strict";
-const LS_KEY='pd-delaware-v9';
-const DAYS=['2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-23'];
+const LS_KEY='pd-delaware-v10';
+const DAYS=['2026-10-19','2026-10-20','2026-10-21'];
 const TODAY='2026-10-21';
-const PAGES=['dentist','summary','fees'];
+const PERIOD={id:'2026-10-19',from:'2026-10-19',to:'2026-10-30',adp:'2026-10-19 to 2026-10-30'};
+// One tab per person in the chain: dentist logs, the front desk adds insurance, Javier approves. Fees is the shared table.
+const PAGES=['dentist','insurance','summary','fees'];
 const BLOCKING=new Set(['noIns','noPrice','notInTable']);
 const PLAN_FOR_COL={medicaid:'mc_adult',delta:'delta',guardian:'guardian',private:'noins',va:'va',nin:'other'};
 
@@ -340,81 +350,122 @@ const BASE=[
  ['D9951','occadj',['Occlusal adjustment','Limited'],['Ajuste oclusal','Limitado']],
 ].map(([code,item,en,es])=>({id:code+'-'+item,code,item,en,es,custom:false}));
 
+// The visits dentists log most, one click each
+const QUICK=[
+ [['D0120-periodic','D0274-btw4','D1110-prophy'],'Periodic + 4 BW + prophy','Periódico + 4 BW + profilaxis'],
+ [['D0120-periodic','D1110-prophy'],'Periodic + prophy','Periódico + profilaxis'],
+ [['D0150-comp','D0274-btw4','D0330-pan'],'Comp + 4 BW + pano','Completo + 4 BW + panorámica'],
+ [['D0150-comp','D0210-fms'],'Comp + FMX','Completo + serie completa'],
+ [['D0140-limited','D0220-pa'],'Limited + PA','Limitado + PA']
+].map(([ids,en,es])=>({ids,en,es}));
+
 const T={
-en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Built by Rianex with your fee table. Patients, dentists and the Dentrix link are simulated.',reset:'Reset demo',resetDone:'Demo data restored',locale:'en-US',
- tab_dentist:'My patients',tab_summary:'Summary',tab_fees:'Fees',
- logged:(a,b)=>`<b>${a}</b> of ${b} logged`,schedule:'Dentrix schedule',st_done:'Done',st_todo:'To do',st_check:'Check',
- addPatient:'Add patient',patPh:'Search patients in Dentrix…',patGroup:'In Dentrix',patCreate:n=>`New patient “${n}”`,patTypeToCreate:'Type a name to add someone new',patAdded:n=>`${n} added`,walkin:'Walk-in',
- pick:'Select a patient to log their treatments.',insurance:'Insurance',insChoose:'Choose insurance',srcDentrix:'From Dentrix',srcManual:'Set by hand',srcNone:'Not in Dentrix',insMissing:'Dentrix has no insurance for this patient. Choose it here, or Javier can do it from the summary.',paysAs:c=>`Pays as ${c}`,insSet:(n,i)=>`${n}: ${i}`,
- treatments:'Treatments',treatPh:'Add a treatment by name or code',noTreat:'Nothing logged yet. Search above by name or ADA code.',tooth:'Tooth',remove:'Remove',save:'Save',saved:'Saved',savedFor:n=>`Saved for ${n}`,unsaved:'Unsaved changes',
+en:{appName:'Dental clinic',appSub:'Production & pay',proto:'Prototype',notice:'Built by Rianex with your fee table. Patients and dentists are made up, and what you type stays in this browser.',reset:'Reset demo',resetDone:'Demo data restored',locale:'en-US',
+ tab_dentist:'Dentist',tab_insurance:'Insurance',tab_summary:'Review',tab_fees:'Fees',
+ nPatients:n=>n===1?'1 patient':`${n} patients`,nTreat:n=>n===1?'1 treatment':`${n} treatments`,st_done:'Logged',st_todo:'Empty',
+ sentAt:x=>`List sent at ${x}`,notSent:'List not sent yet',sendList:'Send list',sendAgain:'Send again',listSent:n=>`List sent to the front desk (${n} patients)`,sendEmpty:'Log at least one patient first.',
+ addPatient:'Add patient',patPh:'Search patients or type a new name…',patGroup:'Clinic patients',patCreate:n=>`New patient “${n}”`,patTypeToCreate:'Type a name to add someone new',patAdded:n=>`${n} added`,
+ pick:'Add a patient to log their treatments.',insurance:'Insurance',insPending:'the front desk adds it',
+ quick:'Common visits',treatments:'Treatments',treatPh:'Add a treatment by name or code',noTreat:'Nothing logged yet. Use a common visit or search above.',tooth:'Tooth',remove:'Remove',autosaved:'Saved automatically',nextPatient:'Next patient',
  createTreat:q=>q?`Create “${q}”`:'Create a new treatment',noMatch:'No treatment matches.',
  dlgTreat:'New treatment',dlgTreatDesc:'Use its ADA code. The category comes from the code, and the name follows the same pattern as the rest: family, variant, detail.',
  f_code:'ADA code',f_family:'Family',f_familyPh:'e.g. Composite',f_variant:'Variant',f_variantPh:'e.g. Posterior',f_detail:'Detail',f_detailPh:'e.g. 1 surface',f_optional:'optional',f_category:'Category',f_catWait:'Type the code to see its category',f_fees:'What the dentist earns',f_feesHelp:'Optional. You can fill it in later under Fees.',f_preview:'It will appear as',f_cancel:'Cancel',f_create:'Create treatment',
  e_code:'Use the format D0000.',e_dup:(c,n)=>`${c} already exists: ${n}.`,e_family:'Give it a family.',created:c=>`${c} created`,famExisting:'Existing families',famNew:n=>`New family “${n}”`,
  dlgPlan:'New insurance',dlgPlanDesc:'Choose which column of your fee table it pays from.',f_planName:'Name',f_planPh:'e.g. Cigna',f_paysLike:'Pays like',f_createPlan:'Add insurance',planAdded:n=>`${n} added`,e_plan:'Give it a name.',
- sumTitle:'Pay period',sumRange:'Oct 12 – Oct 23, 2026',export:'Export for ADP',copied:'Copied. Paste it into ADP.',k_total:'To pay dentists',k_visits:'Visits',k_alerts:'Alerts',
- colDentist:'Dentist',colVisits:'Visits',colPay:'To pay',colAlerts:'Alerts',total:'Total',alertsTitle:'Needs attention',alertsNone:'All clear.',
- a_noIns:'Dentrix has no insurance for this patient.',a_noPrice:(l,c)=>`No ${c} fee for ${l}.`,a_notInTable:l=>`${l} has no fee in the table yet.`,a_twoPrices:'Implant crown has two fees in your table (508.40 / 406.40). The one set under Fees is used.',
+ insChoose:'Choose insurance',paysAs:c=>`Pays as ${c}`,feeSet:(n,i,v)=>`${n}: ${i}. ${v} for the dentist`,
+ insTitle:'Insurance',insSub:'Look each patient up in Dentrix and choose their insurance. The fee fills in by itself.',
+ queueTitle:'Needs insurance',queueNone:'Every patient has insurance.',onlySent:'Only lists the dentists have sent show up here.',
+ listsTitle:d=>`Daily lists · ${d}`,sentShort:x=>`Sent ${x}`,notSentShort:'Not sent',remind:'Send reminder',reminded:n=>`Reminder sent to ${n}`,remindedAll:n=>n===1?'Reminder sent to 1 dentist':`Reminder sent to ${n} dentists`,
+ doneTitle:'Fee filled in automatically',doneSub:'Latest patients with insurance',fromDay:d=>`From ${d}`,
+ sumTitle:'Pay period',sumRange:'Oct 19 – Oct 30, 2026',approve:'Approve and copy for ADP',approveMore:n=>`Approve ${n} more and copy for ADP`,approved:'Approved',copyAgain:'Copy for ADP',approvedToast:'Approved. Pay is copied: paste it into ADP.',copied:'Copied. Paste it into ADP.',
+ k_total:'Ready to pay',k_visits:'Visits',k_hold:'On hold',
+ checkTitle:'Before you approve',c_lists:(a,b)=>`${a} of ${b} daily lists sent`,c_ins:n=>!n?'Every patient has insurance':n===1?'1 patient without insurance':`${n} patients without insurance`,c_fee:n=>!n?'Every treatment has a fee':n===1?'1 treatment without a fee':`${n} treatments without a fee`,
+ remindAll:'Remind them',goIns:'Open Insurance',goFees:'Open Fees',
+ holdNote:'Nothing on hold gets lost: it moves to the next pay period on its own and is paid as soon as it is fixed.',
+ colDentist:'Dentist',colVisits:'Visits',colPay:'To pay',colHold:'On hold',total:'Total',
+ h_notSent:'List not sent',h_noIns:'No insurance',h_noFee:'No fee',h_carried:d=>`From ${d}`,h_paid:'Paid',
  feesTitle:'Fees',feesSub:'What the dentist earns per treatment and insurance. Changes apply right away.',feesFilter:'Filter treatments',newTreat:'New treatment',newPlan:'New insurance',raise:'Raise all by',raiseBtn:'Apply',raised:p=>`All fees raised ${p}%`,sameAs:c=>`Same fee as ${c}`,colCode:'Code',colTreat:'Treatment',newTag:'New',
  combosTitle:'Combos',combosSub:'When these codes come in the same visit, the combo fee is used.',implantRule:'Implant crown fee',history:'Fee changes',noHistory:'No changes yet.',savedFee:'Saved'},
-es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Hecho por Rianex con vuestra tabla de precios. Pacientes, dentistas y la conexión con Dentrix son simulados.',reset:'Restablecer demo',resetDone:'Datos de la demo restablecidos',locale:'es-ES',
- tab_dentist:'Mis pacientes',tab_summary:'Resumen',tab_fees:'Precios',
- logged:(a,b)=>`<b>${a}</b> de ${b} registrados`,schedule:'Agenda de Dentrix',st_done:'Hecho',st_todo:'Pendiente',st_check:'Revisar',
- addPatient:'Añadir paciente',patPh:'Buscar pacientes en Dentrix…',patGroup:'En Dentrix',patCreate:n=>`Paciente nuevo «${n}»`,patTypeToCreate:'Escribe un nombre para añadir a alguien nuevo',patAdded:n=>`${n} añadido`,walkin:'Sin cita',
- pick:'Elige un paciente para registrar sus tratamientos.',insurance:'Seguro',insChoose:'Elegir seguro',srcDentrix:'De Dentrix',srcManual:'Puesto a mano',srcNone:'No está en Dentrix',insMissing:'Dentrix no tiene seguro para este paciente. Elígelo aquí o Javier lo pondrá desde el resumen.',paysAs:c=>`Tarifa ${c}`,insSet:(n,i)=>`${n}: ${i}`,
- treatments:'Tratamientos',treatPh:'Añadir tratamiento por nombre o código',noTreat:'Todavía no hay nada. Busca arriba por nombre o código ADA.',tooth:'Diente',remove:'Quitar',save:'Guardar',saved:'Guardado',savedFor:n=>`Guardado para ${n}`,unsaved:'Cambios sin guardar',
+es:{appName:'Clínica dental',appSub:'Producción y pagos',proto:'Prototipo',notice:'Hecho por Rianex con vuestra tabla de precios. Pacientes y dentistas son inventados, y lo que se escribe se queda en este navegador.',reset:'Restablecer demo',resetDone:'Datos de la demo restablecidos',locale:'es-ES',
+ tab_dentist:'Dentista',tab_insurance:'Seguros',tab_summary:'Revisión',tab_fees:'Precios',
+ nPatients:n=>n===1?'1 paciente':`${n} pacientes`,nTreat:n=>n===1?'1 tratamiento':`${n} tratamientos`,st_done:'Registrado',st_todo:'Vacío',
+ sentAt:x=>`Lista enviada a las ${x}`,notSent:'Lista sin enviar',sendList:'Enviar lista',sendAgain:'Volver a enviar',listSent:n=>`Lista enviada a recepción (${n} pacientes)`,sendEmpty:'Registra antes al menos un paciente.',
+ addPatient:'Añadir paciente',patPh:'Busca un paciente o escribe uno nuevo…',patGroup:'Pacientes de la clínica',patCreate:n=>`Paciente nuevo «${n}»`,patTypeToCreate:'Escribe un nombre para añadir a alguien nuevo',patAdded:n=>`${n} añadido`,
+ pick:'Añade un paciente para registrar sus tratamientos.',insurance:'Seguro',insPending:'lo pone recepción',
+ quick:'Visitas habituales',treatments:'Tratamientos',treatPh:'Añadir tratamiento por nombre o código',noTreat:'Todavía no hay nada. Usa una visita habitual o busca arriba.',tooth:'Diente',remove:'Quitar',autosaved:'Se guarda solo',nextPatient:'Siguiente paciente',
  createTreat:q=>q?`Crear «${q}»`:'Crear un tratamiento nuevo',noMatch:'Ningún tratamiento coincide.',
  dlgTreat:'Tratamiento nuevo',dlgTreatDesc:'Usa su código ADA. La categoría sale del código y el nombre sigue el mismo patrón que el resto: familia, variante, detalle.',
  f_code:'Código ADA',f_family:'Familia',f_familyPh:'p. ej. Composite',f_variant:'Variante',f_variantPh:'p. ej. Posterior',f_detail:'Detalle',f_detailPh:'p. ej. 1 superficie',f_optional:'opcional',f_category:'Categoría',f_catWait:'Escribe el código para ver su categoría',f_fees:'Lo que cobra el dentista',f_feesHelp:'Opcional. Se puede poner después en Precios.',f_preview:'Se verá así',f_cancel:'Cancelar',f_create:'Crear tratamiento',
  e_code:'Usa el formato D0000.',e_dup:(c,n)=>`${c} ya existe: ${n}.`,e_family:'Ponle una familia.',created:c=>`${c} creado`,famExisting:'Familias existentes',famNew:n=>`Familia nueva «${n}»`,
  dlgPlan:'Seguro nuevo',dlgPlanDesc:'Elige de qué columna de vuestra tabla cobra.',f_planName:'Nombre',f_planPh:'p. ej. Cigna',f_paysLike:'Paga como',f_createPlan:'Añadir seguro',planAdded:n=>`${n} añadido`,e_plan:'Ponle un nombre.',
- sumTitle:'Quincena',sumRange:'12 – 23 de octubre de 2026',export:'Exportar para ADP',copied:'Copiado. Pégalo en ADP.',k_total:'A pagar a dentistas',k_visits:'Visitas',k_alerts:'Avisos',
- colDentist:'Dentista',colVisits:'Visitas',colPay:'A pagar',colAlerts:'Avisos',total:'Total',alertsTitle:'Requiere atención',alertsNone:'Todo en orden.',
- a_noIns:'Dentrix no tiene seguro para este paciente.',a_noPrice:(l,c)=>`Sin precio ${c} para ${l}.`,a_notInTable:l=>`${l} aún no tiene precio en la tabla.`,a_twoPrices:'La corona sobre implante tiene dos precios en vuestra tabla (508,40 / 406,40). Se usa el elegido en Precios.',
+ insChoose:'Elegir seguro',paysAs:c=>`Tarifa ${c}`,feeSet:(n,i,v)=>`${n}: ${i}. ${v} para el dentista`,
+ insTitle:'Seguros',insSub:'Busca cada paciente en Dentrix y elige su seguro. El importe se pone solo.',
+ queueTitle:'Falta el seguro',queueNone:'Todos los pacientes tienen seguro.',onlySent:'Aquí solo salen las listas que los dentistas han enviado.',
+ listsTitle:d=>`Listas del día · ${d}`,sentShort:x=>`Enviada ${x}`,notSentShort:'Sin enviar',remind:'Recordar',reminded:n=>`Recordatorio enviado a ${n}`,remindedAll:n=>n===1?'Recordatorio enviado a 1 dentista':`Recordatorio enviado a ${n} dentistas`,
+ doneTitle:'Importe puesto automáticamente',doneSub:'Últimos pacientes con seguro',fromDay:d=>`Del ${d}`,
+ sumTitle:'Quincena',sumRange:'19 – 30 de octubre de 2026',approve:'Dar el visto bueno y copiar para ADP',approveMore:n=>`Aprobar ${n} más y copiar para ADP`,approved:'Aprobada',copyAgain:'Copiar para ADP',approvedToast:'Aprobada. Los pagos están copiados: pégalos en ADP.',copied:'Copiado. Pégalo en ADP.',
+ k_total:'Listo para pagar',k_visits:'Visitas',k_hold:'En espera',
+ checkTitle:'Antes de dar el visto bueno',c_lists:(a,b)=>`${a} de ${b} listas diarias enviadas`,c_ins:n=>!n?'Todos los pacientes tienen seguro':n===1?'1 paciente sin seguro':`${n} pacientes sin seguro`,c_fee:n=>!n?'Todos los tratamientos tienen precio':n===1?'1 tratamiento sin precio':`${n} tratamientos sin precio`,
+ remindAll:'Recordárselo',goIns:'Ir a Seguros',goFees:'Ir a Precios',
+ holdNote:'Lo que está en espera no se pierde: pasa sola a la siguiente quincena y se paga en cuanto se arregla.',
+ colDentist:'Dentista',colVisits:'Visitas',colPay:'A pagar',colHold:'En espera',total:'Total',
+ h_notSent:'Lista sin enviar',h_noIns:'Sin seguro',h_noFee:'Sin precio',h_carried:d=>`Del ${d}`,h_paid:'Pagado',
  feesTitle:'Precios',feesSub:'Lo que cobra el dentista por tratamiento y seguro. Los cambios se aplican al momento.',feesFilter:'Filtrar tratamientos',newTreat:'Tratamiento nuevo',newPlan:'Seguro nuevo',raise:'Subir todo un',raiseBtn:'Aplicar',raised:p=>`Precios subidos un ${p} %`,sameAs:c=>`Mismo precio que ${c}`,colCode:'Código',colTreat:'Tratamiento',newTag:'Nuevo',
  combosTitle:'Combos',combosSub:'Si estos códigos llegan en la misma visita, se usa el precio del combo.',implantRule:'Precio corona sobre implante',history:'Cambios de precios',noHistory:'Sin cambios todavía.',savedFee:'Guardado'}};
 
 const ICON={
  search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
  chev:'<path d="m7 10 5 5 5-5"/>',chevR:'<path d="m10 7 5 5-5 5"/>',
- check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'
+ check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',plus:'<path d="M12 5v14M5 12h14"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+ send:'<path d="M4 12 20 4l-6 16-3-7-7-1Z"/>'
 };
 const svg=k=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
 
 function seed(){
  const dentists=[{id:'d1',name:'Laura Méndez'},{id:'d2',name:'Kevin Park'},{id:'d3',name:'Aisha Rahman'},{id:'d4',name:'Tom Walsh'}];
- const patients=[['Hale, Marcus','delta'],['Ortiz, Lucía','mc_adult'],['Brennan, Claire','delta'],['Nguyen, Daniel','guardian'],['Kowalski, Ann','noins'],['Reyes, Tomás','mc_child'],['Whitfield, Grace','delta'],['Osei, Kwame',null],['Lindqvist, Eva','unum'],['Moreau, Julien','delta'],['Patel, Ravi','va'],['Delgado, Rosa','delta'],['Fischer, Owen','delta'],['Santos, Bianca','mc_adult'],['Ibarra, Leo','mc_child'],['Wright, Samuel','mc_adult'],['Chen, Mia','noins'],['Okafor, Grace','guardian'],['Silva, Pedro','delta'],['Murphy, Kate','delta'],['Rossi, Marco','guardian'],['Kim, Joon','delta'],['Ahmed, Sara','mc_adult'],['Lopez, Daniela','noins']].map(([name,plan],i)=>({id:'p'+(i+1),name,plan,src:plan?'dentrix':null}));
- const times=['8:30','9:15','10:00','11:00','12:30','14:00'];
+ const patients=[['Hale, Marcus','delta'],['Ortiz, Lucía','mc_adult'],['Brennan, Claire','delta'],['Nguyen, Daniel','guardian'],['Kowalski, Ann','noins'],['Reyes, Tomás','mc_child'],['Whitfield, Grace','delta'],['Osei, Kwame',null],['Lindqvist, Eva','unum'],['Moreau, Julien','delta'],['Patel, Ravi','va'],['Delgado, Rosa','delta'],['Fischer, Owen','delta'],['Santos, Bianca','mc_adult'],['Ibarra, Leo','mc_child'],['Wright, Samuel','mc_adult'],['Chen, Mia','noins'],['Okafor, Grace','guardian'],['Silva, Pedro','delta'],['Murphy, Kate','delta'],['Rossi, Marco',null],['Kim, Joon','delta'],['Ahmed, Sara',null],['Lopez, Daniela','noins']].map(([name,plan],i)=>({id:'p'+(i+1),name,plan,src:plan?'desk':null}));
  let n=0;const visits=[];
- const V=(day,d,p,ti,ids)=>visits.push({id:'v'+(++n),date:'2026-10-'+day,dentist:d,patient:p,time:times[ti],items:ids.map(x=>typeof x==='string'?{id:x}:x),saved:ids.length>0});
- V(21,'d1','p1',0,['D0120-periodic','D0274-btw4','D1110-prophy']);V(21,'d1','p13',1,[{id:'D2740-crowndel',tooth:'29'}]);V(21,'d1','p8',2,['D0140-limited','D0220-pa']);
- V(21,'d1','p16',3,[]);V(21,'d1','p17',4,[]);V(21,'d1','p3',5,[]);
- V(19,'d1','p1',0,['D0120-periodic','D0274-btw4','D1110-prophy']);V(19,'d1','p3',1,[{id:'D2392-post2',tooth:'4'},{id:'D2392-post2',tooth:'20'}]);V(19,'d1','p6',2,['D0120-periodic','D0274-btw4','D0220-pa','D0230-paadd','D0230-paadd','D1120-prophy']);
- V(20,'d1','p7',0,[{id:'D2950-core',tooth:'15'},{id:'D2740-crownprep',tooth:'15'}]);V(20,'d1','p10',1,['D0150-comp','D0274-btw4','D0330-pan']);
- V(19,'d2','p2',0,['D0150-comp','D0274-btw4','D0330-pan','D1206-fluoride']);V(19,'d2','p4',1,[{id:'D2391-post1',tooth:'15'},{id:'D2392-post2',tooth:'14'}]);
- V(20,'d2','p11',0,['D0150-comp','D0210-fms']);V(20,'d2','p5',1,['D0150-comp','D1110-prophy']);V(21,'d2','p14',0,[{id:'D6065-implimp',tooth:'30'}]);V(21,'d2','p18',1,['D0120-periodic','D0274-btw4','D1110-prophy']);
- V(19,'d3','p9',0,[{id:'D2393-post3',tooth:'15'},'D1110-prophy']);V(20,'d3','p12',0,[{id:'D2740-crownprep',tooth:'11'},{id:'D2740-crownprep',tooth:'15'}]);V(21,'d3','p19',0,['D0171-followup']);V(21,'d3','p20',1,['D4341-srp']);
- V(19,'d4','p10',0,[{id:'D7140-extsimple',tooth:'1'}]);V(19,'d4','p6',1,[{id:'D3330-endomolar',tooth:'19'}]);V(20,'d4','p7',0,['D0120-periodic','D1110-prophy']);V(21,'d4','p11',0,[{id:'D2393-post3',tooth:'3'}]);V(21,'d4','p15',1,['D0145-under3','D1120-prophy']);
- return {v:9,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,fees:PD.defaultFees(),custom:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,nextPat:patients.length+1};
+ const V=(date,d,p,ids)=>visits.push({id:'v'+(++n),date,dentist:d,patient:p,items:ids.map(x=>typeof x==='string'?{id:x}:x),paid:null});
+ // Left over from earlier periods: one whose insurance came in late, one still waiting for it
+ V('2026-09-30','d1','p9',[{id:'D2393-post3',tooth:'15'},'D1110-prophy']);
+ V('2026-10-14','d3','p8',['D0140-limited','D0220-pa']);
+ V('2026-10-19','d1','p1',['D0120-periodic','D0274-btw4','D1110-prophy']);V('2026-10-19','d1','p3',[{id:'D2392-post2',tooth:'4'},{id:'D2392-post2',tooth:'20'}]);V('2026-10-19','d1','p6',['D0120-periodic','D0274-btw4','D0220-pa','D0230-paadd','D0230-paadd','D1120-prophy']);
+ V('2026-10-19','d2','p2',['D0150-comp','D0274-btw4','D0330-pan','D1206-fluoride']);V('2026-10-19','d2','p4',[{id:'D2391-post1',tooth:'15'},{id:'D2392-post2',tooth:'14'}]);
+ V('2026-10-19','d3','p22',[{id:'D2393-post3',tooth:'15'},'D1110-prophy']);
+ V('2026-10-19','d4','p10',[{id:'D7140-extsimple',tooth:'1'}]);V('2026-10-19','d4','p24',[{id:'D3330-endomolar',tooth:'19'}]);
+ V('2026-10-20','d1','p7',[{id:'D2950-core',tooth:'15'},{id:'D2740-crownprep',tooth:'15'}]);V('2026-10-20','d1','p10',['D0150-comp','D0274-btw4','D0330-pan']);
+ V('2026-10-20','d2','p11',['D0150-comp','D0210-fms']);V('2026-10-20','d2','p5',['D0150-comp','D1110-prophy']);
+ V('2026-10-20','d3','p12',[{id:'D2740-crownprep',tooth:'11'},{id:'D2740-crownprep',tooth:'15'}]);V('2026-10-20','d3','p23',['D0150-comp','D0274-btw4']);
+ V('2026-10-20','d4','p20',['D0120-periodic','D1110-prophy']);
+ V(TODAY,'d1','p13',[{id:'D2740-crowndel',tooth:'29'}]);V(TODAY,'d1','p16',['D0120-periodic','D0274-btw4','D1110-prophy']);V(TODAY,'d1','p17',[]);
+ V(TODAY,'d2','p14',[{id:'D6065-implimp',tooth:'30'}]);V(TODAY,'d2','p18',['D0120-periodic','D0274-btw4','D1110-prophy']);V(TODAY,'d2','p21',['D0150-comp','D0330-pan']);
+ V(TODAY,'d3','p19',['D0171-followup']);V(TODAY,'d3','p20',['D4341-srp']);
+ V(TODAY,'d4','p11',[{id:'D2393-post3',tooth:'3'}]);V(TODAY,'d4','p15',['D0145-under3','D1120-prophy']);
+ // Which daily lists each dentist has sent, and when
+ const sent={'d1|2026-09-30':'17:48','d3|2026-10-14':'18:02','d2|2026-10-21':'17:40','d4|2026-10-21':'18:05'};
+ dentists.forEach((d,i)=>['2026-10-19','2026-10-20'].forEach(day=>{sent[d.id+'|'+day]='17:'+(30+i*7);}));
+ return {v:10,lang:'en',page:'dentist',dentist:'d1',date:TODAY,sel:null,dentists,patients,visits,sent,approved:null,fees:PD.defaultFees(),custom:[],customPlans:[],history:[],implantIdx:0,open:{},nextVisit:n+1,nextPat:patients.length+1};
 }
 let S;
-try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===9&&Array.isArray(p.visits))S=p;}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);const p=raw&&JSON.parse(raw);if(p&&p.v===10&&Array.isArray(p.visits))S=p;}catch(e){}
 if(!S)S=seed();
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));}catch(e){}}
 
 // UI state that is not worth keeping between visits
-let OPEN=null,OPTS=[],ACT=0,ADDING=false,DIALOG=null,DIRTY=new Set(),FEEQ='';
+let OPEN=null,OPTS=[],ACT=0,ADDING=false,DIALOG=null,FEEQ='';
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function t(k,...a){const v=T[S.lang][k];return typeof v==='function'?v(...a):(v??k);}
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 const sum=a=>a.reduce((x,y)=>x+y,0);
-const money=v=>{if(v==null)return '—';if(S.lang==='es'){const [i,d]=v.toFixed(2).split('.');return (i.length>4?i.replace(/\B(?=(\d{3})+(?!\d))/g,' '):i)+','+d+' $';}return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);};
+const money=v=>{if(v==null)return '—';if(S.lang==='es'){const [i,d]=v.toFixed(2).split('.');return (i.length>4?i.replace(/\B(?=(\d{3})+(?!\d))/g,' '):i)+','+d+' $';}return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v);};
 const fmtFee=v=>v==null||v===''?'':(S.lang==='es'?Number(v).toFixed(2).replace('.',','):Number(v).toFixed(2));
 const parseFee=s=>{const x=String(s||'').trim().replace(/\s/g,'').replace(',','.');if(x==='')return null;const n=Number(x);return isNaN(n)?undefined:Math.round(Math.max(0,n)*100)/100;};
 const fmtDate=(iso,o)=>new Date(iso+'T12:00:00').toLocaleDateString(t('locale'),o||{weekday:'short',month:'short',day:'numeric'});
+const fmtTime=s=>{const [h,m]=String(s).split(':');return new Date(2026,0,1,+h,+m).toLocaleTimeString(t('locale'),{hour:'numeric',minute:'2-digit'});};
 const pat=id=>S.patients.find(p=>p.id===id);
+const dname=id=>S.dentists.find(d=>d.id===id).name;
 const initials=name=>{const [l,f]=String(name).split(',').map(x=>(x||'').trim());return ((f||'')[0]||'')+((l||'')[0]||'');};
 const dInitials=name=>name.split(' ').map(w=>w[0]).slice(0,2).join('');
 const catalog=()=>BASE.concat(S.custom);
@@ -426,6 +477,8 @@ const needsTooth=e=>{const c=catOf(e&&e.code);return !!c&&TOOTH_CATS.has(c.id);}
 const allPlans=()=>PD.PLAN_ORDER.map(k=>({id:k,name:PD.PLANS[k][S.lang].replace(/\s*\(.*\)$/,''),col:PD.PLANS[k].col})).concat(S.customPlans);
 const planInfo=k=>allPlans().find(p=>p.id===k);
 const colName=c=>c?PD.COL_NAMES[c]:'—';
+const dayKey=(d,date)=>d+'|'+date;
+const isSent=v=>!!S.sent[dayKey(v.dentist,v.date)];
 
 /* ---------- pricing ---------- */
 function engineItems(items){
@@ -443,15 +496,16 @@ function evalVisit(v){
  const planKey=pl?(PD.PLANS[pl.id]?pl.id:PLAN_FOR_COL[pl.col]):null;
  const r=PD.priceVisit(engineItems(v.items),planKey,{fees:S.fees,implantIdx:S.implantIdx});
  r.blocking=r.alerts.filter(a=>BLOCKING.has(a)).length;
- const label=x=>{const e=catalog().find(c=>c.item===x.id);return e?nameText(e):(PD.ITEM[x.id]?PD.ITEM[x.id][S.lang]:x.id);};
- r.missing=r.parts.filter(x=>x.amount==null).map(label);
  return r;
 }
-function alertMsg(a,e){return a==='noIns'?t('a_noIns'):a==='noPrice'?t('a_noPrice',e.missing.join(', '),colName(e.col)):a==='notInTable'?t('a_notInTable',e.missing.join(', ')):t('a_twoPrices');}
-function visitStatus(v){if(!v.saved||!v.items.length)return 'todo';return evalVisit(v).blocking?'check':'done';}
+// Why a visit can't be paid yet. Unpaid visits stay in the period until these are cleared, so nothing is forgotten.
+function holds(v,e){const r=isSent(v)?[]:['notSent'];e.alerts.forEach(a=>{if(BLOCKING.has(a))r.push(a==='notInTable'?'noPrice':a);});return [...new Set(r)];}
+function periodRows(){return S.visits.filter(v=>v.items.length&&(v.paid===PERIOD.id||(!v.paid&&v.date<=PERIOD.to))).map(v=>{const e=evalVisit(v);return {v,e,hold:v.paid?[]:holds(v,e)};});}
+function insQueue(){return S.visits.filter(v=>v.items.length&&isSent(v)&&!v.paid&&!pat(v.patient).plan).sort((a,b)=>a.date.localeCompare(b.date));}
+const holdLabel=h=>t(h==='notSent'?'h_notSent':h==='noIns'?'h_noIns':'h_noFee');
 
 let toastT;
-function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2200);}
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2600);}
 function focusId(id){requestAnimationFrame(()=>{const el=document.getElementById(id);if(el)el.focus();});}
 
 /* ---------- shell ---------- */
@@ -460,13 +514,14 @@ function renderShell(){
  document.title=S.lang==='es'?'Producción Dental Delaware':'Dental Production Delaware';
  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
  $('#lang-en').setAttribute('aria-pressed',S.lang==='en');$('#lang-es').setAttribute('aria-pressed',S.lang==='es');
- const alerts=sum(S.visits.filter(v=>v.items.length&&v.saved).map(v=>evalVisit(v).alerts.length));
- $('#tabs').innerHTML=PAGES.map(k=>`<button type="button" class="tab" role="tab" data-action="page" data-page="${k}" aria-selected="${S.page===k}">${t('tab_'+k)}${k==='summary'&&alerts?`<span class="cnt">${alerts}</span>`:''}</button>`).join('');
+ const queue=insQueue().length;
+ $('#tabs').innerHTML=PAGES.map(k=>`<button type="button" class="tab" role="tab" data-action="page" data-page="${k}" aria-selected="${S.page===k}">${t('tab_'+k)}${k==='insurance'&&queue?`<span class="cnt">${queue}</span>`:''}</button>`).join('');
 }
-function render(){renderShell();({dentist:renderDentist,summary:renderSummary,fees:renderFees})[S.page]();renderDialog();}
-function rerenderPage(){({dentist:renderDentist,summary:renderSummary,fees:renderFees})[S.page]();}
+const VIEWS={dentist:()=>renderDentist(),insurance:()=>renderInsurance(),summary:()=>renderSummary(),fees:()=>renderFees()};
+function render(){renderShell();VIEWS[S.page]();renderDialog();}
+function rerenderPage(){VIEWS[S.page]();}
 
-/* ---------- menus (insurance, dentist) ---------- */
+/* ---------- menus (insurance, dentist, day) ---------- */
 function planMenu(key,p,align){
  const pl=p&&p.plan?planInfo(p.plan):null;
  const open=OPEN===key;
@@ -476,7 +531,12 @@ function dentistMenu(){
  const d=S.dentists.find(x=>x.id===S.dentist);const open=OPEN==='menu:dentist';
  return `<div class="menu-wrap"><button type="button" class="selbtn" data-action="menu" data-key="menu:dentist" aria-haspopup="listbox" aria-expanded="${open}"><span class="av">${esc(dInitials(d.name))}</span>${esc(d.name)}${svg('chev')}</button>${open?`<div class="pop w260" role="listbox">${S.dentists.map(x=>`<div class="opt" role="option" aria-selected="${x.id===S.dentist}" data-action="dentist-pick" data-val="${x.id}"><span class="av">${esc(dInitials(x.name))}</span><span class="nm">${esc(x.name)}</span>${x.id===S.dentist?`<svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${ICON.check}</svg>`:''}</div>`).join('')}</div>`:''}</div>`;
 }
-function setPlan(p,k){p.plan=k||null;p.src=k?'manual':null;save();toast(t('insSet',p.name,planInfo(k).name));}
+const daySeg=()=>`<div class="seg" role="group">${DAYS.map(d=>`<button type="button" data-action="day" data-d="${d}" aria-pressed="${S.date===d}">${esc(fmtDate(d,{weekday:'short',day:'numeric'}))}</button>`).join('')}</div>`;
+function setPlan(p,k){
+ p.plan=k||null;p.src=k?'desk':null;save();
+ const due=S.visits.filter(v=>v.patient===p.id&&v.items.length&&!v.paid);
+ toast(t('feeSet',p.name,planInfo(k).name,money(sum(due.map(v=>evalVisit(v).total||0)))));
+}
 
 /* ---------- comboboxes ---------- */
 function scoreEntry(e,q){
@@ -502,7 +562,7 @@ function buildPop(key){
   const raw=$('#pat-q').value.trim(),q=norm(raw);
   const onDay=new Set(S.visits.filter(v=>v.dentist===S.dentist&&v.date===S.date).map(v=>v.patient));
   const hits=S.patients.filter(p=>!onDay.has(p.id)&&(!q||norm(p.name).includes(q))).slice(0,8);
-  if(hits.length){h+=`<div class="grp">${t('patGroup')}</div>`;hits.forEach(p=>{const pl=p.plan?planInfo(p.plan):null;OPTS.push({kind:'pat',id:p.id});h+=optHTML(OPTS.length-1,`<span class="av">${esc(initials(p.name))}</span><span class="nm">${esc(p.name)}</span><span class="meta">${pl?esc(pl.name):''}</span>`);});}
+  if(hits.length){h+=`<div class="grp">${t('patGroup')}</div>`;hits.forEach(p=>{OPTS.push({kind:'pat',id:p.id});h+=optHTML(OPTS.length-1,`<span class="av">${esc(initials(p.name))}</span><span class="nm">${esc(p.name)}</span>`);});}
   h+='<div class="sep"></div>';
   if(raw){OPTS.push({kind:'newpat',name:raw});h+=optHTML(OPTS.length-1,`${svg('plus')}<span class="nm">${esc(t('patCreate',raw))}</span>`,'create');}
   else h+=`<div class="none">${t('patTypeToCreate')}</div>`;
@@ -529,36 +589,38 @@ function refreshPop(key){
 }
 function runOpt(i){
  const o=OPTS[i];if(!o)return;
- if(o.kind==='treat'){const v=curVisit();if(!v)return;const e=entry(o.id);v.items.push({id:o.id});v.saved=false;DIRTY.add(v.id);save();OPEN=null;$('#treat-q').value='';renderShell();renderDentist();if(needsTooth(e))focusId('tooth-'+(v.items.length-1));else focusId('treat-q');}
+ if(o.kind==='treat'){const v=curVisit();if(!v)return;const e=entry(o.id);v.items.push({id:o.id});save();OPEN=null;$('#treat-q').value='';renderShell();renderDentist();if(needsTooth(e))focusId('tooth-'+(v.items.length-1));else focusId('treat-q');}
  else if(o.kind==='create'){const q=$('#treat-q').value.trim();OPEN=null;refreshPop('treat');openTreatDialog(q,'visit');}
  else if(o.kind==='pat'){addPatientVisit(pat(o.id));}
  else if(o.kind==='newpat'){const p={id:'p'+(S.nextPat++),name:o.name,plan:null,src:null};S.patients.push(p);addPatientVisit(p);}
  else if(o.kind==='fam'){$('#dlg-family').value=o.val;OPEN=null;refreshPop('family');updateDialog();focusId('dlg-variant');}
 }
 
-/* ---------- dentist ---------- */
-function dayVisits(){return S.visits.filter(v=>v.dentist===S.dentist&&v.date===S.date).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99',undefined,{numeric:true}));}
+/* ---------- dentist: log the day and send it ---------- */
+function dayVisits(){return S.visits.filter(v=>v.dentist===S.dentist&&v.date===S.date);}
 function curVisit(){return S.visits.find(x=>x.id===S.sel);}
 function addPatientVisit(p){
  let v=S.visits.find(x=>x.dentist===S.dentist&&x.date===S.date&&x.patient===p.id);
- if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,time:'',items:[],saved:false};S.visits.push(v);}
- S.sel=v.id;ADDING=false;OPEN=null;save();renderShell();renderDentist();toast(t('patAdded',p.name));focusId(p.plan?'treat-q':'ins-menu-btn');
+ if(!v){v={id:'v'+(S.nextVisit++),date:S.date,dentist:S.dentist,patient:p.id,items:[],paid:null};S.visits.push(v);}
+ S.sel=v.id;ADDING=false;OPEN=null;save();renderShell();renderDentist();toast(t('patAdded',p.name));focusId('treat-q');
 }
 function renderDentist(){
  const vs=dayVisits();
- if(!S.sel||!vs.some(v=>v.id===S.sel))S.sel=(vs.find(v=>!v.saved)||vs[0]||{}).id||null;
- const done=vs.filter(v=>visitStatus(v)!=='todo').length;
+ if(!S.sel||!vs.some(v=>v.id===S.sel))S.sel=(vs.find(v=>!v.items.length)||vs[0]||{}).id||null;
+ const sent=S.sent[dayKey(S.dentist,S.date)];
+ const logged=vs.filter(v=>v.items.length).length;
  $('#main').innerHTML=`
  <div class="toolbar">
   ${dentistMenu()}
-  <div class="seg" role="group">${DAYS.map(d=>`<button type="button" data-action="day" data-d="${d}" aria-pressed="${S.date===d}">${esc(fmtDate(d,{weekday:'short',day:'numeric'}))}</button>`).join('')}</div>
+  ${daySeg()}
   <span class="grow"></span>
-  <span class="progress">${t('logged',done,vs.length)}</span>
+  <span class="state ${sent?'ok':''}">${sent?'✓ '+t('sentAt',fmtTime(sent)):t('notSent')}</span>
+  <button type="button" class="btn ${sent?'outline':'primary'}" data-action="send-list" ${logged?'':'disabled'}>${svg('send')}${t(sent?'sendAgain':'sendList')}</button>
  </div>
  <div class="dgrid">
   <section class="card">
-   <div class="ch"><h2>${esc(fmtDate(S.date,{weekday:'long',month:'short',day:'numeric'}))}</h2><span class="sub">${t('schedule')}</span></div>
-   <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const st=visitStatus(v);return `<li><button type="button" class="prow" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span class="tm">${esc(v.time||t('walkin'))}</span><span><span class="nm">${esc(p.name)}</span><span class="ins ${pl?'':'none'}">${pl?esc(pl.name):t('srcNone')}</span></span><span class="pill ${st==='done'?'ok':st==='check'?'bad':''}">${t('st_'+st)}</span></button></li>`;}).join('')}</ul>
+   <div class="ch"><h2>${esc(fmtDate(S.date,{weekday:'long',month:'short',day:'numeric'}))}</h2><span class="sub">${t('nPatients',vs.length)}</span></div>
+   <ul class="plist">${vs.map(v=>{const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;const done=v.items.length>0;return `<li><button type="button" class="prow" data-action="sel" data-v="${v.id}" aria-current="${S.sel===v.id}"><span><span class="nm">${esc(p.name)}</span><span class="ins">${done?esc(t('nTreat',v.items.length)):''}${done&&pl?' · ':''}${pl?esc(pl.name):''}</span></span><span class="pill ${done?'ok':''}">${t(done?'st_done':'st_todo')}</span></button></li>`;}).join('')}</ul>
    <div class="lfoot">${ADDING?`<div class="cbx"><span>${svg('search')}</span><input type="text" id="pat-q" class="cbx-in" data-cbx="pat" autocomplete="off" spellcheck="false" placeholder="${esc(t('patPh'))}" role="combobox" aria-expanded="false" aria-controls="pop-pat" aria-autocomplete="list"><div class="pop" id="pop-pat" role="listbox" hidden></div></div>`:`<button type="button" class="btn ghost" data-action="add-patient">${svg('plus')}${t('addPatient')}</button>`}</div>
   </section>
   <section class="card detail" id="detail">${detailHTML()}</section>
@@ -569,43 +631,77 @@ function detailHTML(){
  const v=curVisit();
  if(!v)return `<div class="blank">${t('pick')}</div>`;
  const p=pat(v.patient);const pl=p.plan?planInfo(p.plan):null;
- const src=pl?(p.src==='manual'?t('srcManual'):t('srcDentrix')):t('srcNone');
- const dirty=DIRTY.has(v.id)&&!v.saved;
+ const vs=dayVisits();const next=vs[vs.findIndex(x=>x.id===v.id)+1];
  return `<div class="dh">
    <h2>${esc(p.name)}</h2>
-   <div class="dmeta"><span class="mono">${esc(v.time||t('walkin'))}</span><span>·</span>${planMenu('menu:ins:panel',p).replace('data-action="menu"','id="ins-menu-btn" data-action="menu"')}<span class="src ${pl?'':'none'}">${src}</span></div>
-   ${pl?'':`<p class="hint">${t('insMissing')}</p>`}
+   <div class="dmeta"><span>${t('insurance')}: ${pl?`<b>${esc(pl.name)}</b>`:esc(t('insPending'))}</span></div>
   </div>
   <div class="dbody">
+   <span class="lbl">${t('quick')}</span>
+   <div class="quick">${QUICK.map((q,i)=>`<button type="button" class="chip" data-action="quick" data-i="${i}">${esc(q[S.lang])}</button>`).join('')}</div>
    <span class="lbl">${t('treatments')}</span>
    <div class="cbx">${svg('search')}<input type="text" id="treat-q" class="cbx-in" data-cbx="treat" autocomplete="off" spellcheck="false" placeholder="${esc(t('treatPh'))}" role="combobox" aria-expanded="false" aria-controls="pop-treat" aria-autocomplete="list"><div class="pop" id="pop-treat" role="listbox" hidden></div></div>
    ${v.items.length?`<ul class="tlist">${v.items.map((x,i)=>{const e=entry(x.id);return `<li class="trow"><span class="code">${esc(e?e.code:'?')}</span><span class="nm">${e?nameHTML(e):esc(x.id)}</span>${needsTooth(e)?`<input type="text" class="tooth" id="tooth-${i}" data-f="tooth" data-i="${i}" value="${esc(x.tooth||'')}" placeholder="${esc(t('tooth'))}" maxlength="3" aria-label="${esc(t('tooth'))}">`:'<span></span>'}<button type="button" class="rm" data-action="rm" data-i="${i}">${t('remove')}</button></li>`;}).join('')}</ul>`:`<div class="empty">${t('noTreat')}</div>`}
   </div>
-  <div class="dfoot"><span class="state ${v.saved&&v.items.length?'ok':''}">${v.saved&&v.items.length?'✓ '+t('saved'):dirty?t('unsaved'):''}</span><button type="button" class="btn primary" data-action="save" ${v.items.length?'':'disabled'}>${t('save')}</button></div>`;
+  <div class="dfoot"><span class="state">${v.items.length?'✓ '+t('autosaved'):''}</span>${next?`<button type="button" class="btn outline" data-action="sel" data-v="${next.id}">${t('nextPatient')}${svg('chevR')}</button>`:`<button type="button" class="btn outline" data-action="add-patient">${svg('plus')}${t('addPatient')}</button>`}</div>`;
 }
-function refreshDetail(){const el=$('#detail');if(el)el.innerHTML=detailHTML();}
 
-/* ---------- summary ---------- */
-function renderSummary(){
- const rows=S.dentists.map(d=>{const vs=S.visits.filter(v=>v.dentist===d.id&&v.items.length&&v.saved).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'',undefined,{numeric:true}));const ev=vs.map(v=>[v,evalVisit(v)]);return {d,vs,ev,pay:Math.round(sum(ev.map(([,e])=>e.total||0))*100)/100,alerts:ev.filter(([,e])=>e.alerts.length).length};});
- const alerts=[];rows.forEach(r=>r.ev.forEach(([v,e])=>e.alerts.forEach(a=>alerts.push({v,e,a,d:r.d}))));
- alerts.sort((x,y)=>(BLOCKING.has(y.a)?1:0)-(BLOCKING.has(x.a)?1:0));
- const short=iso=>fmtDate(iso,{weekday:'short',day:'numeric'});
- const total=sum(rows.map(r=>r.pay));
+/* ---------- insurance: the front desk's queue ---------- */
+function renderInsurance(){
+ const q=insQueue();
+ const lists=S.dentists.map(d=>({d,n:S.visits.filter(v=>v.dentist===d.id&&v.date===S.date&&v.items.length).length,sent:S.sent[dayKey(d.id,S.date)]}));
+ const done=S.visits.filter(v=>v.items.length&&isSent(v)&&!v.paid&&pat(v.patient).plan).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
  $('#main').innerHTML=`
- <div class="ph"><div><h1>${t('sumTitle')}</h1><div class="sub">${t('sumRange')}</div></div><div class="acts"><button type="button" class="btn primary" data-action="adp">${svg('copy')}${t('export')}</button></div></div>
+ <div class="ph"><div><h1>${t('insTitle')}</h1><div class="sub">${t('insSub')}</div></div></div>
+ <div class="stack">
+ <section class="card"><div class="ch"><h2>${t('queueTitle')}</h2>${q.length?`<span class="sub">${t('nPatients',q.length)}</span>`:''}</div>
+  ${q.length?`<ul class="alerts">${q.map(v=>{const p=pat(v.patient);return `<li><div class="what"><b>${esc(p.name)}</b><span>${esc(dname(v.dentist))} · ${esc(fmtDate(v.date))} · ${esc(t('nTreat',v.items.length))}</span></div><span class="tags">${v.date<PERIOD.from?`<span class="tag bad">${esc(t('fromDay',fmtDate(v.date,{month:'short',day:'numeric'})))}</span>`:''}${planMenu('menu:ins:'+v.id,p,'right')}</span></li>`;}).join('')}</ul>`:`<p class="clear">${t('queueNone')}</p>`}
+  <div class="cfoot"><span class="muted">${t('onlySent')}</span></div></section>
+ <section class="card"><div class="ch"><h2>${t('listsTitle',fmtDate(S.date,{weekday:'long',month:'short',day:'numeric'}))}</h2>${daySeg()}</div>
+  <ul class="alerts">${lists.map(r=>`<li><div class="what"><b>${esc(r.d.name)}</b><span>${t('nPatients',r.n)}</span></div>${r.sent?`<span class="pill ok">${t('sentShort',fmtTime(r.sent))}</span>`:`<span class="tags" style="align-items:center;gap:12px"><span class="pill bad">${t('notSentShort')}</span><button type="button" class="btn outline sm" data-action="remind" data-d="${r.d.id}">${t('remind')}</button></span>`}</li>`).join('')}</ul></section>
+ ${done.length?`<section class="card"><div class="ch"><h2>${t('doneTitle')}</h2><span class="sub">${t('doneSub')}</span></div><div class="tablewrap"><table class="t"><tbody>${done.map(v=>{const p=pat(v.patient);const e=evalVisit(v);return `<tr><td><b style="font-weight:500">${esc(p.name)}</b><div class="muted" style="font-size:12px">${esc(dname(v.dentist))} · ${esc(fmtDate(v.date))}</div></td><td class="muted">${esc(planInfo(p.plan).name)}</td><td class="num">${money(e.total)}</td></tr>`;}).join('')}</tbody></table></div></section>`:''}
+ </div>`;
+}
+
+/* ---------- review: Javier's sign-off ---------- */
+function missingLists(){const m=[];S.dentists.forEach(d=>DAYS.forEach(day=>{if(!S.sent[dayKey(d.id,day)])m.push({d,day});}));return m;}
+function renderSummary(){
+ const all=periodRows();
+ const hold=all.filter(r=>r.hold.length),toApprove=all.filter(r=>!r.hold.length&&!r.v.paid);
+ const rows=S.dentists.map(d=>{const mine=all.filter(r=>r.v.dentist===d.id).sort((a,b)=>a.v.date.localeCompare(b.v.date));const ok=mine.filter(r=>!r.hold.length);return {d,mine,pay:Math.round(sum(ok.map(r=>r.e.total||0))*100)/100,visits:ok.length,hold:mine.length-ok.length};});
+ const total=sum(rows.map(r=>r.pay));
+ const short=iso=>fmtDate(iso,{weekday:'short',day:'numeric'});
+ const missing=missingLists(),totalLists=S.dentists.length*DAYS.length;
+ const noIns=new Set(hold.filter(r=>r.hold.includes('noIns')).map(r=>r.v.patient)).size;
+ const noFee=hold.filter(r=>r.hold.includes('noPrice')).length;
+ const chk=(ok,label,sub,act)=>`<li><div class="what"><span class="pill ${ok?'ok':'bad'}"><span style="color:var(--ink);font-weight:500;font-size:13.5px">${esc(label)}</span></span>${sub?`<span>${esc(sub)}</span>`:''}</div>${ok?'':act}</li>`;
+ const tags=r=>[r.v.date<PERIOD.from?`<span class="tag">${esc(t('h_carried',fmtDate(r.v.date,{month:'short',day:'numeric'})))}</span>`:'',r.v.paid?`<span class="tag">${t('h_paid')}</span>`:'',...r.hold.map(h=>`<span class="tag bad">${esc(holdLabel(h))}</span>`)].join('');
+ const acts=S.approved&&!toApprove.length
+  ?`<span class="state ok">✓ ${t('approved')}</span><button type="button" class="btn outline" data-action="adp">${svg('copy')}${t('copyAgain')}</button>`
+  :`<button type="button" class="btn primary" data-action="approve" ${toApprove.length?'':'disabled'}>${svg('check')}${S.approved?t('approveMore',toApprove.length):t('approve')}</button>`;
+ $('#main').innerHTML=`
+ <div class="ph"><div><h1>${t('sumTitle')}</h1><div class="sub">${t('sumRange')}</div></div><div class="acts">${acts}</div></div>
  <div class="kpis">
   <div class="card kpi"><span>${t('k_total')}</span><b>${money(total)}</b></div>
-  <div class="card kpi"><span>${t('k_visits')}</span><b>${sum(rows.map(r=>r.vs.length))}</b></div>
-  <div class="card kpi ${alerts.length?'bad':''}"><span>${t('k_alerts')}</span><b>${alerts.length}</b></div>
+  <div class="card kpi"><span>${t('k_visits')}</span><b>${sum(rows.map(r=>r.visits))}</b></div>
+  <div class="card kpi ${hold.length?'bad':''}"><span>${t('k_hold')}</span><b>${hold.length}</b></div>
  </div>
  <div class="stack">
- <section class="card"><div class="tablewrap"><table class="t"><thead><tr><th>${t('colDentist')}</th><th class="num">${t('colVisits')}</th><th class="num">${t('colPay')}</th><th>${t('colAlerts')}</th></tr></thead><tbody>
- ${rows.map(r=>`<tr><td><button type="button" class="exp" data-action="toggle" data-d="${r.d.id}" aria-expanded="${!!S.open[r.d.id]}">${svg('chevR')}<span class="av">${esc(dInitials(r.d.name))}</span>${esc(r.d.name)}</button></td><td class="num">${r.vs.length}</td><td class="num">${money(r.pay)}</td><td>${r.alerts?`<span class="pill bad">${r.alerts}</span>`:`<span class="pill ok">0</span>`}</td></tr>
-  ${S.open[r.d.id]?`<tr class="detail"><td colspan="4"><div class="tablewrap"><table class="inner"><tbody>${r.ev.map(([v,e])=>{const p=pat(v.patient);return `<tr><td class="mono muted" style="white-space:nowrap">${esc(short(v.date))}</td><td>${esc(p.name)}</td><td class="mono muted" style="font-size:12px">${esc(v.items.map(x=>{const en=entry(x.id);return (en?en.code:'?')+(x.tooth?' #'+x.tooth:'');}).join(', '))}</td><td class="muted">${esc(p.plan?planInfo(p.plan).name:'—')}</td><td class="num">${money(e.total)}</td></tr>`;}).join('')}</tbody></table></div></td></tr>`:''}`).join('')}
- </tbody><tfoot><tr><td>${t('total')}</td><td class="num">${sum(rows.map(r=>r.vs.length))}</td><td class="num">${money(total)}</td><td></td></tr></tfoot></table></div></section>
- <section class="card"><div class="ch"><h2>${t('alertsTitle')}</h2>${alerts.length?`<span class="sub">${alerts.length}</span>`:''}</div>${alerts.length?`<ul class="alerts">${alerts.map(x=>{const p=pat(x.v.patient);return `<li><div class="what"><b>${esc(p.name)}</b><span>${esc(alertMsg(x.a,x.e))} ${esc(x.d.name)} · ${esc(short(x.v.date))}</span></div>${x.a==='noIns'?planMenu('menu:ins:sum:'+x.v.id,p,'right'):''}</li>`;}).join('')}</ul>`:`<p class="clear">${t('alertsNone')}</p>`}</section>
+ <section class="card"><div class="ch"><h2>${t('checkTitle')}</h2></div><ul class="alerts">
+  ${chk(!missing.length,t('c_lists',totalLists-missing.length,totalLists),missing.map(m=>m.d.name+' · '+short(m.day)).join(', '),`<button type="button" class="btn outline sm" data-action="remind-all">${t('remindAll')}</button>`)}
+  ${chk(!noIns,t('c_ins',noIns),'',`<button type="button" class="btn outline sm" data-action="page" data-page="insurance">${t('goIns')}</button>`)}
+  ${chk(!noFee,t('c_fee',noFee),'',`<button type="button" class="btn outline sm" data-action="page" data-page="fees">${t('goFees')}</button>`)}
+ </ul><div class="cfoot"><span class="muted">${t('holdNote')}</span></div></section>
+ <section class="card"><div class="tablewrap"><table class="t"><thead><tr><th>${t('colDentist')}</th><th class="num">${t('colVisits')}</th><th class="num">${t('colPay')}</th><th>${t('colHold')}</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr><td><button type="button" class="exp" data-action="toggle" data-d="${r.d.id}" aria-expanded="${!!S.open[r.d.id]}">${svg('chevR')}<span class="av">${esc(dInitials(r.d.name))}</span>${esc(r.d.name)}</button></td><td class="num">${r.visits}</td><td class="num">${money(r.pay)}</td><td>${r.hold?`<span class="pill bad">${r.hold}</span>`:`<span class="pill ok">0</span>`}</td></tr>
+  ${S.open[r.d.id]?`<tr class="detail"><td colspan="4"><div class="tablewrap"><table class="inner"><tbody>${r.mine.map(x=>{const p=pat(x.v.patient);return `<tr><td class="mono muted" style="white-space:nowrap">${esc(short(x.v.date))}</td><td>${esc(p.name)} <span class="tags">${tags(x)}</span></td><td class="mono muted" style="font-size:12px">${esc(x.v.items.map(it=>{const en=entry(it.id);return (en?en.code:'?')+(it.tooth?' #'+it.tooth:'');}).join(', '))}</td><td class="muted">${esc(p.plan?planInfo(p.plan).name:'—')}</td><td class="num">${x.hold.length?'—':money(x.e.total)}</td></tr>`;}).join('')}</tbody></table></div></td></tr>`:''}`).join('')}
+ </tbody><tfoot><tr><td>${t('total')}</td><td class="num">${sum(rows.map(r=>r.visits))}</td><td class="num">${money(total)}</td><td></td></tr></tfoot></table></div></section>
  </div>`;
+}
+function copyADP(msg){
+ const lines=['Dentist\tPay period\tAmount'];
+ S.dentists.forEach(d=>{const tot=sum(S.visits.filter(v=>v.dentist===d.id&&v.paid===PERIOD.id).map(v=>evalVisit(v).total||0));lines.push(`${d.name}\t${PERIOD.adp}\t${tot.toFixed(2)}`);});
+ const ok=()=>toast(msg);try{navigator.clipboard.writeText(lines.join('\n')).then(ok,ok);}catch(e){ok();}
 }
 
 /* ---------- fees ---------- */
@@ -692,7 +788,7 @@ function createTreatment(){
  const e={id:v.code+'-'+key,code:v.code,item:key,en:nm,es:nm,custom:true};
  S.custom.push(e);
  const from=DIALOG.from;DIALOG=null;OPEN=null;
- if(from==='visit'){const cv=curVisit();if(cv){cv.items.push({id:e.id});cv.saved=false;DIRTY.add(cv.id);}}
+ if(from==='visit'){const cv=curVisit();if(cv)cv.items.push({id:e.id});}
  save();render();toast(t('created',v.code));
  if(from==='visit'&&needsTooth(e)){const cv=curVisit();focusId('tooth-'+(cv.items.length-1));}
 }
@@ -713,17 +809,21 @@ document.addEventListener('click',ev=>{
  const b=ev.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
  if(a==='lang'){S.lang=b.dataset.lang;save();render();}
  else if(a==='page'){S.page=b.dataset.page;OPEN=null;ADDING=false;save();render();try{history.replaceState(null,'','#'+S.page);}catch(e){}window.scrollTo(0,0);}
- else if(a==='reset'){const lang=S.lang,page=S.page;S=seed();S.lang=lang;S.page=page;OPEN=null;ADDING=false;DIALOG=null;DIRTY.clear();save();render();toast(t('resetDone'));}
+ else if(a==='reset'){const lang=S.lang,page=S.page;S=seed();S.lang=lang;S.page=page;OPEN=null;ADDING=false;DIALOG=null;save();render();toast(t('resetDone'));}
  else if(a==='menu'){const k=b.dataset.key;OPEN=OPEN===k?null:k;rerenderPage();}
  else if(a==='plan-pick'){const p=pat(b.dataset.p);OPEN=null;setPlan(p,b.dataset.val);renderShell();rerenderPage();}
  else if(a==='dentist-pick'){S.dentist=b.dataset.val;S.sel=null;OPEN=null;ADDING=false;save();renderDentist();}
- else if(a==='day'){S.date=b.dataset.d;S.sel=null;ADDING=false;save();renderDentist();}
+ else if(a==='day'){S.date=b.dataset.d;S.sel=null;ADDING=false;save();rerenderPage();}
  else if(a==='sel'){S.sel=b.dataset.v;OPEN=null;save();renderDentist();if(matchMedia('(max-width:840px)').matches)$('#detail').scrollIntoView({block:'start'});}
  else if(a==='add-patient'){ADDING=true;ACT=0;renderDentist();focusId('pat-q');}
- else if(a==='rm'){const v=curVisit();v.items.splice(+b.dataset.i,1);v.saved=false;DIRTY.add(v.id);save();renderShell();renderDentist();}
- else if(a==='save'){const v=curVisit();v.saved=true;DIRTY.delete(v.id);const name=pat(v.patient).name;const next=dayVisits().find(x=>!x.saved&&x.id!==v.id);save();renderShell();renderDentist();toast(t('savedFor',name));if(next)setTimeout(()=>{if(S.sel===v.id&&S.page==='dentist'&&!DIALOG){S.sel=next.id;save();renderDentist();}},1200);}
+ else if(a==='quick'){const v=curVisit();if(!v)return;QUICK[+b.dataset.i].ids.forEach(id=>v.items.push({id}));save();renderShell();renderDentist();focusId('treat-q');}
+ else if(a==='rm'){const v=curVisit();v.items.splice(+b.dataset.i,1);save();renderShell();renderDentist();}
+ else if(a==='send-list'){const n=dayVisits().filter(v=>v.items.length).length;if(!n){toast(t('sendEmpty'));return;}const d=new Date();S.sent[dayKey(S.dentist,S.date)]=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');save();renderShell();renderDentist();toast(t('listSent',n));}
+ else if(a==='remind'){toast(t('reminded',dname(b.dataset.d)));}
+ else if(a==='remind-all'){toast(t('remindedAll',new Set(missingLists().map(m=>m.d.id)).size));}
  else if(a==='toggle'){S.open[b.dataset.d]=!S.open[b.dataset.d];save();renderSummary();}
- else if(a==='adp'){const lines=['Dentist\tPay period\tAmount'];S.dentists.forEach(d=>{const tot=sum(S.visits.filter(v=>v.dentist===d.id&&v.items.length&&v.saved).map(v=>evalVisit(v).total||0));lines.push(`${d.name}\t2026-10-12 to 2026-10-23\t${tot.toFixed(2)}`);});const ok=()=>toast(t('copied'));try{navigator.clipboard.writeText(lines.join('\n')).then(ok,ok);}catch(e){ok();}}
+ else if(a==='approve'){periodRows().filter(r=>!r.hold.length&&!r.v.paid).forEach(r=>{r.v.paid=PERIOD.id;});S.approved=new Date().toISOString().slice(0,10);save();renderShell();renderSummary();copyADP(t('approvedToast'));}
+ else if(a==='adp'){copyADP(t('copied'));}
  else if(a==='new-treat'){openTreatDialog('','fees');}
  else if(a==='new-plan'){DIALOG={type:'plan',col:'nin'};renderDialog();focusId('dlg-plan');}
  else if(a==='dlg-close'){DIALOG=null;OPEN=null;renderDialog();}
@@ -755,7 +855,7 @@ document.addEventListener('keydown',ev=>{
 });
 document.addEventListener('change',ev=>{
  const el=ev.target,f=el.dataset.f;
- if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.items[+el.dataset.i].tooth=s;else delete v.items[+el.dataset.i].tooth;v.saved=false;DIRTY.add(v.id);save();const st=$('.dfoot .state');if(st){st.className='state';st.textContent=t('unsaved');}}
+ if(f==='tooth'){const v=curVisit();const s=el.value.trim().toUpperCase().replace(/^#/,'');if(s)v.items[+el.dataset.i].tooth=s;else delete v.items[+el.dataset.i].tooth;save();}
  else if(f==='fee'){const v=parseFee(el.value);const row=S.fees[el.dataset.k];if(v===undefined){el.value=fmtFee(row[el.dataset.col]);return;}row[el.dataset.col]=v;el.value=fmtFee(v);save();renderShell();toast(t('savedFee'));}
 });
 
